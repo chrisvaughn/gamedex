@@ -1,1 +1,1 @@
-# gamed
+# gamedex
