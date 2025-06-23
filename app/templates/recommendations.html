@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Recommendations - GameDex</title>
+    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .game-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+
+        .game-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/" class="text-2xl font-bold text-indigo-600">🎲 GameDex</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/"
+                        class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Home</a>
+                    <a href="/games"
+                        class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Games</a>
+                    <a href="/games/new"
+                        class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Add
+                        Game</a>
+                    <a href="/recommend"
+                        class="text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Recommendations</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">AI Game Recommendations</h1>
+            <p class="text-xl text-gray-600">Ask for game suggestions in natural language</p>
+        </div>
+
+        <!-- Recommendation Form -->
+        <div class="bg-white rounded-lg shadow-md p-8 mb-8">
+            <form hx-post="/recommend" hx-target="#recommendations" hx-swap="innerHTML">
+                <div class="mb-6">
+                    <label for="query" class="block text-sm font-medium text-gray-700 mb-2">
+                        What kind of game are you looking for?
+                    </label>
+                    <textarea id="query" name="query" rows="4"
+                        placeholder="e.g., 'I want a strategy game for 4 players that takes about an hour' or 'Something fun and light for a party'"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"></textarea>
+                </div>
+                <div class="flex justify-center">
+                    <button type="submit"
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-lg font-medium transition-colors">
+                        🤖 Get Recommendations
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Example Queries -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Example Queries</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="p-4 border border-gray-200 rounded-lg hover:border-indigo-300 cursor-pointer"
+                    onclick="document.getElementById('query').value = 'I want a strategy game for 4 players'">
+                    <div class="font-medium text-gray-900">Strategy for 4 players</div>
+                    <div class="text-sm text-gray-600">Find strategic games for a group</div>
+                </div>
+                <div class="p-4 border border-gray-200 rounded-lg hover:border-indigo-300 cursor-pointer"
+                    onclick="document.getElementById('query').value = 'Something quick and fun for 2 players'">
+                    <div class="font-medium text-gray-900">Quick 2-player games</div>
+                    <div class="text-sm text-gray-600">Short games for couples</div>
+                </div>
+                <div class="p-4 border border-gray-200 rounded-lg hover:border-indigo-300 cursor-pointer"
+                    onclick="document.getElementById('query').value = 'Family-friendly games for kids'">
+                    <div class="font-medium text-gray-900">Family games</div>
+                    <div class="text-sm text-gray-600">Games suitable for children</div>
+                </div>
+                <div class="p-4 border border-gray-200 rounded-lg hover:border-indigo-300 cursor-pointer"
+                    onclick="document.getElementById('query').value = 'Cooperative games for beginners'">
+                    <div class="font-medium text-gray-900">Cooperative games</div>
+                    <div class="text-sm text-gray-600">Team-based games</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recommendations Results -->
+        <div id="recommendations">
+            <!-- Results will be loaded here -->
+        </div>
+
+        <!-- No Games Warning -->
+        {% if not games %}
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+            <div class="text-yellow-800">
+                <h3 class="text-lg font-medium mb-2">No Games in Collection</h3>
+                <p class="mb-4">You need to add some games to your collection before getting AI recommendations.</p>
+                <a href="/games/new"
+                    class="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                    Add Your First Game
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="text-center text-gray-600">
+                <p>&copy; 2024 GameDex. Built with FastAPI, SQLAlchemy, and OpenAI.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>

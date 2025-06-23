@@ -1,1 +1,220 @@
-# gamedex
+# 🎲 GameDex
+
+A personal web app that helps you catalog, organize, and intelligently explore your board game collection. GameDex lets you store rich metadata for each game and leverages AI to suggest games based on your preferences or context.
+
+## ✨ Features
+
+- **Game Catalog**: Add, edit, delete, and list board games with structured metadata
+- **Rich Metadata**: Track number of players, game type, playtime, complexity, and personal ratings
+- **Filtering & Search**: Easily search or filter by game attributes
+- **AI Autofill**: Use GPT to fetch game metadata based on title
+- **Game Recommender**: Ask natural-language questions like "What's good for 3 players who want something short?"
+
+## 🛠️ Tech Stack
+
+- **Backend**: FastAPI (Python)
+- **Frontend**: Jinja2 Templates with HTMX
+- **Database**: SQLite (local) → PostgreSQL (production)
+- **AI**: OpenAI GPT API
+- **Hosting**: Fly.io
+- **Containerization**: Docker
+- **Package Management**: Poetry
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Python 3.13+
+- Poetry
+- Docker (optional)
+- OpenAI API key (for AI features)
+
+### Local Development
+
+1. **Clone the repository**
+
+   ```bash
+   git clone <repository-url>
+   cd gamedex
+   ```
+
+2. **Install dependencies**
+
+   ```bash
+   poetry install
+   ```
+
+3. **Set up environment variables**
+
+   ```bash
+   export OPENAI_API_KEY="your-openai-api-key"
+   ```
+
+4. **Run the application**
+
+   ```bash
+   poetry run uvicorn app.main:app --reload
+   ```
+
+5. **Visit the application**
+   Open your browser and go to `http://localhost:8000`
+
+### Testing
+
+GameDex includes a comprehensive test suite covering models, database operations, AI utilities, API endpoints, and integration tests.
+
+#### Running Tests
+
+**Run tests with pytest directly:**
+
+```bash
+poetry run pytest tests/ -v
+```
+
+**Run specific test files:**
+
+```bash
+poetry run pytest tests/test_models.py -v
+poetry run pytest tests/test_api.py -v
+```
+
+**Run tests with coverage:**
+
+```bash
+poetry run pytest tests/ --cov=app --cov-report=html
+```
+
+#### Writing Tests
+
+When adding new features, please include corresponding tests:
+
+1. **Unit tests** for new functions and classes
+2. **Integration tests** for new API endpoints
+3. **Database tests** for new models or queries
+4. **Update existing tests** if you change existing functionality
+
+Example test structure:
+
+```python
+def test_new_feature():
+    """Test description"""
+    # Arrange
+    # Act
+    # Assert
+```
+
+### Docker Development
+
+1. **Build the image**
+
+   ```bash
+   docker build -t gamedex .
+   ```
+
+2. **Run the container**
+
+   ```bash
+   docker run -p 8000:8000 -e OPENAI_API_KEY="your-key" gamedex
+   ```
+
+## 🚀 Deployment
+
+### Fly.io Deployment
+
+1. **Install Fly CLI**
+
+   ```bash
+   curl -L https://fly.io/install.sh | sh
+   ```
+
+2. **Login to Fly**
+
+   ```bash
+   fly auth login
+   ```
+
+3. **Create the app**
+
+   ```bash
+   fly apps create gamedex
+   ```
+
+4. **Set secrets**
+
+   ```bash
+   fly secrets set OPENAI_API_KEY="your-openai-api-key"
+   fly secrets set DATABASE_URL="postgresql://..."
+   ```
+
+5. **Deploy**
+
+   ```bash
+   fly deploy
+   ```
+
+## 🔧 Configuration
+
+### Environment Variables
+
+- `OPENAI_API_KEY`: Your OpenAI API key for AI features
+- `DATABASE_URL`: Database connection string (defaults to SQLite for local development)
+
+### Database
+
+The application uses SQLite for local development and PostgreSQL for production. The database is automatically created when you first run the application.
+
+## 🤖 AI Features
+
+### Game Metadata Autofill
+
+When adding a new game, you can use the AI autofill feature to automatically populate game metadata based on the title. This uses OpenAI's GPT model to fetch information about the game.
+
+### Game Recommendations
+
+Ask natural language questions to get AI-powered game recommendations:
+
+- "What's good for 4 players who want something quick?"
+- "I want a strategy game for 2 players"
+- "Something fun and light for a party"
+
+## 🎨 UI/UX Features
+
+- **Modern Design**: Clean, responsive interface built with Tailwind CSS
+- **Interactive Cards**: Hover effects and smooth transitions
+- **Statistics Dashboard**: Overview of your collection with key metrics
+- **Mobile Responsive**: Works great on all device sizes
+
+## 🔒 Security
+
+- Non-root Docker container
+- Environment variable configuration
+- SQL injection protection via SQLAlchemy
+- Input validation and sanitization
+
+## 📈 Monitoring
+
+The application includes health checks and is configured for monitoring on Fly.io with automatic restarts and scaling.
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🆘 Support
+
+If you encounter any issues or have questions:
+
+1. Check the documentation
+2. Search existing issues
+3. Create a new issue with detailed information
+
+---
+
+Built with ❤️ using FastAPI, SQLAlchemy, and OpenAI

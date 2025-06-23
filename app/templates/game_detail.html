@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ game.title }} - GameDex</title>
+    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/" class="text-2xl font-bold text-indigo-600">🎲 GameDex</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/"
+                        class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Home</a>
+                    <a href="/games"
+                        class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Games</a>
+                    <a href="/games/new"
+                        class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Add
+                        Game</a>
+                    <a href="/recommend"
+                        class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Recommendations</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {% if msg %}
+        <div class="mb-6 p-4 bg-green-100 border border-green-300 text-green-800 rounded-lg text-center">
+            {{ msg }}
+        </div>
+        {% endif %}
+        <!-- Breadcrumb -->
+        <nav class="mb-6">
+            <ol class="flex items-center space-x-2 text-sm text-gray-600">
+                <li><a href="/" class="hover:text-indigo-600">Home</a></li>
+                <li><span class="mx-2">/</span></li>
+                <li><a href="/games" class="hover:text-indigo-600">Games</a></li>
+                <li><span class="mx-2">/</span></li>
+                <li class="text-gray-900 font-medium">{{ game.title }}</li>
+            </ol>
+        </nav>
+
+        <!-- Game Detail Card -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-8 text-white">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h1 class="text-3xl font-bold mb-2">{{ game.title }}</h1>
+                        {% if game.game_type %}
+                        <span class="inline-block bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm font-medium">
+                            {{ game.game_type }}
+                        </span>
+                        {% endif %}
+                    </div>
+                    <div class="flex space-x-2">
+                        <a href="/games"
+                            class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                            ← Back to Games
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Game Details -->
+            <div class="p-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Left Column - Game Info -->
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-900 mb-4">Game Information</h2>
+
+                        <div class="space-y-4">
+                            {% if game.player_count %}
+                            <div class="flex items-center">
+                                <span class="w-8 h-8 mr-3 text-indigo-600">👥</span>
+                                <div>
+                                    <div class="font-medium text-gray-900">Player Count</div>
+                                    <div class="text-gray-600">{{ game.player_count }}</div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if game.playtime %}
+                            <div class="flex items-center">
+                                <span class="w-8 h-8 mr-3 text-indigo-600">⏱️</span>
+                                <div>
+                                    <div class="font-medium text-gray-900">Playtime</div>
+                                    <div class="text-gray-600">{{ game.playtime }}</div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if game.complexity %}
+                            <div class="flex items-center">
+                                <span class="w-8 h-8 mr-3 text-indigo-600">🧠</span>
+                                <div>
+                                    <div class="font-medium text-gray-900">Complexity</div>
+                                    <div class="text-gray-600">{{ game.complexity }}</div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if game.rating %}
+                            <div class="flex items-center">
+                                <span class="w-8 h-8 mr-3 text-indigo-600">⭐</span>
+                                <div>
+                                    <div class="font-medium text-gray-900">Your Rating</div>
+                                    <div class="flex items-center">
+                                        <div class="flex text-yellow-400 mr-2">
+                                            {% for i in range(game.rating) %}
+                                            <span>★</span>
+                                            {% endfor %}
+                                            {% for i in range(10 - game.rating) %}
+                                            <span class="text-gray-300">★</span>
+                                            {% endfor %}
+                                        </div>
+                                        <span class="text-gray-600">{{ game.rating }}/10</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if game.description %}
+                            <div class="flex items-start">
+                                <span class="w-8 h-8 mr-3 text-indigo-600 mt-1">📝</span>
+                                <div>
+                                    <div class="font-medium text-gray-900">Description</div>
+                                    <div class="text-gray-600">{{ game.description }}</div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Right Column - Actions & Metadata -->
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-900 mb-4">Actions</h2>
+
+                        <div class="space-y-4">
+                            <!-- AI Autofill Button -->
+                            <form method="POST" action="/games/{{ game.id }}/autofill" class="inline">
+                                <button type="submit"
+                                    class="w-full bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center">
+                                    <span class="mr-2">🤖</span>
+                                    Autofill with AI
+                                </button>
+                            </form>
+
+                            <!-- Edit Game Button -->
+                            <a href="/games/{{ game.id }}/edit"
+                                class="block w-full bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium transition-colors text-center">
+                                ✏️ Edit Game
+                            </a>
+
+                            <!-- Delete Game Button -->
+                            <button onclick="deleteGame()"
+                                class="w-full bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                                🗑️ Delete Game
+                            </button>
+                        </div>
+
+                        <!-- Metadata -->
+                        <div class="mt-8 p-4 bg-gray-50 rounded-lg">
+                            <h3 class="text-sm font-medium text-gray-900 mb-2">Metadata</h3>
+                            <div class="text-sm text-gray-600 space-y-1">
+                                <div>ID: {{ game.id }}</div>
+                                <div>Created: {{ game.created_at.strftime('%B %d, %Y') if game.created_at else 'Unknown'
+                                    }}</div>
+                                <div>Updated: {{ game.updated_at.strftime('%B %d, %Y') if game.updated_at else 'Unknown'
+                                    }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Missing Information Notice -->
+                {% if not game.player_count or not game.game_type or not game.playtime or not game.complexity %}
+                <div class="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div class="flex items-center">
+                        <span class="text-yellow-600 mr-2">⚠️</span>
+                        <div>
+                            <h3 class="text-sm font-medium text-yellow-800">Missing Information</h3>
+                            <p class="text-sm text-yellow-700 mt-1">
+                                This game is missing some details. Use the "Autofill with AI" button to automatically
+                                populate missing information, or edit the game manually.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function deleteGame() {
+            if (confirm('Are you sure you want to delete "{{ game.title }}"? This action cannot be undone.')) {
+                // For now, just show an alert. You can implement actual deletion later
+                alert('Delete functionality not implemented yet. This would delete the game.');
+            }
+        }
+    </script>
+</body>
+
+</html>
