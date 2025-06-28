@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 # Database URL - use SQLite for local development, PostgreSQL for production
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./app/gamedex.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./gamedex.db")
 
 # Create engine
 if DATABASE_URL.startswith("sqlite"):

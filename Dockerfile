@@ -18,6 +18,5 @@ COPY app/ ./app/
 
 USER app
 
-ENV HOST=0.0.0.0 PORT=8080
-EXPOSE ${PORT}
-CMD ["uvicorn", "app.main:app", "--host", "${HOST}", "--port", "${PORT}"]
+EXPOSE 8080
+CMD ["poetry", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
