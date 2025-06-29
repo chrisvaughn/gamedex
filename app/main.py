@@ -140,6 +140,19 @@ async def get_game(
     )
 
 
+@app.get("/games/{game_id}/edit")
+async def edit_game_form(
+    request: Request,
+    game_id: int = Path(..., gt=0),
+    db: Session = Depends(get_db),
+):
+    """Form to edit an existing game"""
+    game = db.query(Game).filter(Game.id == game_id).first()
+    if not game:
+        raise HTTPException(status_code=404, detail="Game not found")
+    return templates.TemplateResponse(request, "edit_game.html", {"game": game})
+
+
 @app.post("/games/{game_id}")
 async def update_game(
     game_id: int = Path(..., gt=0),
