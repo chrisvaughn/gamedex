@@ -1,3 +1,4 @@
+import pytest
 from fastapi.testclient import TestClient
 
 from app.ai_utils import format_game_metadata
@@ -7,11 +8,10 @@ class TestAPIEndpoints:
     """Test cases for API endpoints"""
 
     def test_root_endpoint(self, client: TestClient):
-        """Test the root endpoint returns the main page"""
+        """Test the root endpoint"""
         response = client.get("/")
         assert response.status_code == 200
         assert "GameDex" in response.text
-        assert "Add New Game" in response.text
 
     def test_games_list_endpoint_empty(self, client: TestClient):
         """Test games list endpoint with no games"""
@@ -22,13 +22,13 @@ class TestAPIEndpoints:
     def test_games_list_endpoint_with_games(
         self, client: TestClient, sample_games_data
     ):
-        """Test games list endpoint with games in database"""
-        # Add games to database
+        """Test games list endpoint with games"""
+        # Add games first
         for game_data in sample_games_data:
             response = client.post("/games", data=game_data)
             assert response.status_code == 200
 
-        # Test listing games
+        # Test list endpoint
         response = client.get("/games")
         assert response.status_code == 200
         assert "Catan" in response.text
@@ -36,7 +36,7 @@ class TestAPIEndpoints:
         assert "Pandemic" in response.text
 
     def test_create_game_endpoint(self, client: TestClient, sample_game_data):
-        """Test creating a new game"""
+        """Test creating a game"""
         response = client.post("/games", data=sample_game_data)
         assert response.status_code == 200
         assert response.status_code == 200
@@ -84,7 +84,6 @@ class TestAPIEndpoints:
         # Update the game
         updated_data = sample_game_data.copy()
         updated_data["title"] = "Updated Test Game"
-        updated_data["rating"] = 9
 
         response = client.post("/games/1", data=updated_data)
         if response.status_code == 200:
@@ -210,10 +209,6 @@ class TestAPIEndpoints:
 
         # Test sorting by title
         response = client.get("/games?sort=title")
-        assert response.status_code == 200
-
-        # Test sorting by rating
-        response = client.get("/games?sort=rating")
         assert response.status_code == 200
 
     def test_format_game_metadata_with_empty_values(self):

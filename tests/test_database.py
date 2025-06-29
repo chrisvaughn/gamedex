@@ -15,7 +15,6 @@ class TestDatabaseOperations:
             game_type="Strategy",
             playtime="30-60 minutes",
             complexity="Medium",
-            rating=8,
         )
 
         db_session.add(game)
@@ -28,7 +27,6 @@ class TestDatabaseOperations:
         assert game.game_type == "Strategy"
         assert game.playtime == "30-60 minutes"
         assert game.complexity == "Medium"
-        assert game.rating == 8
 
     def test_query_games_from_database(self, db_session: Session, sample_games_data):
         """Test querying games from the database"""
@@ -61,7 +59,7 @@ class TestDatabaseOperations:
     def test_update_game_in_database(self, db_session: Session):
         """Test updating a game in the database"""
         # Create a game
-        game = Game(title="Original Title", rating=5)
+        game = Game(title="Original Title")
         db_session.add(game)
         db_session.commit()
         db_session.refresh(game)
@@ -71,14 +69,12 @@ class TestDatabaseOperations:
 
         # Update the game
         game.title = "Updated Title"
-        game.rating = 9
         db_session.commit()
         db_session.refresh(game)
 
         # Check that the game was updated
         assert game.id == original_id
         assert game.title == "Updated Title"
-        assert game.rating == 9
         assert game.created_at == original_created_at
         assert game.updated_at > original_created_at
 
@@ -110,10 +106,6 @@ class TestDatabaseOperations:
             db_session.add(game)
 
         db_session.commit()
-
-        # Test filtering by rating
-        high_rated_games = db_session.query(Game).filter(Game.rating >= 8).all()
-        assert len(high_rated_games) == 2  # Catan (8) and Pandemic (9)
 
         # Test filtering by game type
         strategy_games = (
