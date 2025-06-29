@@ -1,3 +1,4 @@
+import os
 from logging.config import fileConfig
 
 from alembic import context
@@ -19,6 +20,14 @@ if config.config_file_name is not None:
 from app.models import Base
 
 target_metadata = Base.metadata
+
+# Get database URL from environment variable
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL environment variable is required")
+
+# Override the sqlalchemy.url from alembic.ini with the environment variable
+config.set_main_option("sqlalchemy.url", DATABASE_URL)
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

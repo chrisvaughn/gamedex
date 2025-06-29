@@ -45,6 +45,7 @@ jobs:
     - name: Run pytest
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        DATABASE_URL: "sqlite:///:memory:"
       run: poetry run pytest
     
   docker-build:
