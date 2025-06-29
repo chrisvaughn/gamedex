@@ -4,6 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from app.auth import create_session_token
 from app.database import get_db
 from app.main import app
 from app.models import Base
@@ -50,6 +51,23 @@ def client(db_session):
     app.dependency_overrides[get_db] = lambda: db_session
     with TestClient(app) as test_client:
         yield test_client
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture(scope="function")
+def authenticated_client(db_session):
+    """Create an authenticated test client"""
+    app.dependency_overrides[get_db] = lambda: db_session
+
+    with TestClient(app) as test_client:
+        # Create a session token
+        session_token = create_session_token()
+
+        # Set the session cookie
+        test_client.cookies.set("session", session_token)
+
+        yield test_client
+
     app.dependency_overrides.clear()
 
 

@@ -99,6 +99,7 @@ DATABASE_URL=sqlite:///./gamedex.db
    export FAMILY_PASSWORD="your-family-password"
    export DATABASE_URL="sqlite:///./gamedex.db"
    export OPENAI_API_KEY="your-openai-api-key"
+   export IS_PRODUCTION="false"
 
    # Option 2: Use .env file
    cp .env.example .env
@@ -188,6 +189,7 @@ def test_new_feature():
      -e SESSION_SECRET_KEY="your-very-long-random-secret-key-here" \
      -e FAMILY_PASSWORD="your-family-password" \
      -e OPENAI_API_KEY="your-openai-api-key" \
+     -e IS_PRODUCTION="false" \
      gamedex
    ```
 
@@ -224,6 +226,9 @@ def test_new_feature():
 - `OPENAI_API_KEY` (Optional): Your OpenAI API key for AI features
 - `SESSION_SECRET_KEY`: Secret key for session management (generate with `openssl rand -hex 32`)
 - `FAMILY_PASSWORD`: Password for family access to the application
+- `IS_PRODUCTION` (Optional): Set to "true" to indicate production environment (defaults to "false")
+  - **Development**: `IS_PRODUCTION=false` or unset
+  - **Production**: `IS_PRODUCTION=true`
 
 ### Database Setup
 

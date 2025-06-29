@@ -1,3 +1,4 @@
+import os
 from typing import List, Optional
 
 import uvicorn
@@ -5,6 +6,7 @@ from fastapi import Depends, FastAPI, Form, HTTPException, Path, Query, Request
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from .ai_utils import get_game_metadata
@@ -19,6 +21,34 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 # Templates
 templates = Jinja2Templates(directory="app/templates")
+
+
+@app.get("/healthz")
+async def health_check(db: Session = Depends(get_db)):
+    """Health check endpoint that verifies database connectivity"""
+    try:
+        # Test database connection by executing a simple query
+        db.execute(text("SELECT 1"))
+        return {
+            "status": "healthy",
+            "database": "connected",
+            "environment": (
+                "production"
+                if os.getenv("IS_PRODUCTION", "false").lower() == "true"
+                else "development"
+            ),
+        }
+    except Exception as e:
+        return {
+            "status": "unhealthy",
+            "database": "disconnected",
+            "error": str(e),
+            "environment": (
+                "production"
+                if os.getenv("IS_PRODUCTION", "false").lower() == "true"
+                else "development"
+            ),
+        }
 
 
 @app.get("/login")
