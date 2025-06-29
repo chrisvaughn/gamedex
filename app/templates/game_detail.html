@@ -27,6 +27,8 @@
                         Game</a>
                     <a href="/recommend"
                         class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Recommendations</a>
+                    <a href="/settings"
+                        class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Settings</a>
                 </div>
             </div>
         </div>
@@ -125,6 +127,37 @@
                                             {% endfor %}
                                         </div>
                                         <span class="text-gray-600">{{ game.rating }}/10</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <!-- Family Member Ratings -->
+                            {% if family_members %}
+                            <div class="flex items-start">
+                                <span class="w-8 h-8 mr-3 text-indigo-600 mt-1">👥</span>
+                                <div class="flex-1">
+                                    <div class="font-medium text-gray-900 mb-2">Family Ratings</div>
+                                    <div class="space-y-2">
+                                        {% for member in family_members %}
+                                        {% if family_ratings.get(member.id) %}
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm text-gray-600">{{ member.name }}:</span>
+                                            <div class="flex items-center">
+                                                <div class="flex text-yellow-400 mr-2">
+                                                    {% for i in range(family_ratings.get(member.id)) %}
+                                                    <span class="text-sm">★</span>
+                                                    {% endfor %}
+                                                    {% for i in range(10 - family_ratings.get(member.id)) %}
+                                                    <span class="text-sm text-gray-300">★</span>
+                                                    {% endfor %}
+                                                </div>
+                                                <span class="text-sm text-gray-600">{{ family_ratings.get(member.id)
+                                                    }}/10</span>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                        {% endfor %}
                                     </div>
                                 </div>
                             </div>

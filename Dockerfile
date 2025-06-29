@@ -15,8 +15,14 @@ COPY pyproject.toml poetry.lock ./
 RUN poetry install --without dev
 
 COPY app/ ./app/
+COPY migrations/ ./migrations/
+COPY alembic.ini ./
+
+# Copy and make startup script executable
+COPY start.sh ./
+RUN chmod +x start.sh
 
 USER app
 
 EXPOSE 8080
-CMD ["poetry", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["./start.sh"]

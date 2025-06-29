@@ -9,10 +9,7 @@ from sqlalchemy.orm import Session
 
 from .ai_utils import get_game_metadata
 from .database import engine, get_db
-from .models import Base, Game
-
-# Create database tables
-Base.metadata.create_all(bind=engine)
+from .models import Base, FamilyMember, Game, GameRating
 
 app = FastAPI(title="GameDex", description="Board Game Collection Manager")
 
@@ -29,8 +26,68 @@ async def index(
 ):
     """Home page with list of games"""
     games = db.query(Game).all()
+
+    # Get family members and their ratings for all games
+    family_members = db.query(FamilyMember).order_by(FamilyMember.name).all()
+    family_ratings = {}
+
+    for game in games:
+        family_ratings[game.id] = {
+            rating.family_member_id: rating.rating for rating in game.family_ratings
+        }
+
     return templates.TemplateResponse(
-        request, "index.html", {"games": games, "msg": msg}
+        request,
+        "index.html",
+        {
+            "games": games,
+            "msg": msg,
+            "family_members": family_members,
+            "family_ratings": family_ratings,
+        },
+    )
+
+
+@app.get("/settings")
+async def settings_page(request: Request, db: Session = Depends(get_db)):
+    """Settings page for managing family members"""
+    family_members = db.query(FamilyMember).order_by(FamilyMember.name).all()
+    return templates.TemplateResponse(
+        request, "settings.html", {"family_members": family_members}
+    )
+
+
+@app.post("/settings/family-members")
+async def add_family_member(name: str = Form(...), db: Session = Depends(get_db)):
+    """Add a new family member"""
+    # Check if name already exists
+    existing = db.query(FamilyMember).filter(FamilyMember.name == name).first()
+    if existing:
+        return RedirectResponse(
+            url="/settings?error=Family+member+already+exists", status_code=303
+        )
+
+    family_member = FamilyMember(name=name)
+    db.add(family_member)
+    db.commit()
+    return RedirectResponse(
+        url="/settings?msg=Family+member+added+successfully", status_code=303
+    )
+
+
+@app.delete("/settings/family-members/{member_id}")
+async def delete_family_member(
+    member_id: int = Path(..., gt=0), db: Session = Depends(get_db)
+):
+    """Delete a family member and all their ratings"""
+    family_member = db.query(FamilyMember).filter(FamilyMember.id == member_id).first()
+    if not family_member:
+        raise HTTPException(status_code=404, detail="Family member not found")
+
+    db.delete(family_member)
+    db.commit()
+    return RedirectResponse(
+        url="/settings?msg=Family+member+deleted+successfully", status_code=303
     )
 
 
@@ -59,30 +116,52 @@ async def list_games(
     if sort == "title":
         query = query.order_by(Game.title)
     elif sort == "rating":
-        query = query.order_by(Game.rating.desc())
+        # Note: This sorting won't work properly without the old rating field
+        # We'll need to implement a different approach for sorting by family ratings
+        query = query.order_by(Game.id.desc())
     else:
         query = query.order_by(Game.id.desc())
 
     games = query.all()
+
+    # Get family members and their ratings for all games
+    family_members = db.query(FamilyMember).order_by(FamilyMember.name).all()
+    family_ratings = {}
+
+    for game in games:
+        family_ratings[game.id] = {
+            rating.family_member_id: rating.rating for rating in game.family_ratings
+        }
+
     return templates.TemplateResponse(
-        request, "games.html", {"games": games, "msg": msg}
+        request,
+        "games.html",
+        {
+            "games": games,
+            "msg": msg,
+            "family_members": family_members,
+            "family_ratings": family_ratings,
+        },
     )
 
 
 @app.get("/games/new")
-async def new_game_form(request: Request):
+async def new_game_form(request: Request, db: Session = Depends(get_db)):
     """Form to add a new game"""
-    return templates.TemplateResponse(request, "new_game.html", {})
+    family_members = db.query(FamilyMember).order_by(FamilyMember.name).all()
+    return templates.TemplateResponse(
+        request, "new_game.html", {"family_members": family_members}
+    )
 
 
 @app.post("/games")
 async def create_game(
+    request: Request,
     title: str = Form(...),
     player_count: Optional[str] = Form(None),
     game_type: Optional[str] = Form(None),
     playtime: Optional[str] = Form(None),
     complexity: Optional[str] = Form(None),
-    rating: Optional[int] = Form(None),
     description: Optional[str] = Form(None),
     db: Session = Depends(get_db),
 ):
@@ -93,12 +172,30 @@ async def create_game(
         game_type=game_type or "",
         playtime=playtime or "",
         complexity=complexity or "",
-        rating=rating,
         description=description or "",
     )
     db.add(game)
     db.commit()
     db.refresh(game)
+
+    # Handle family member ratings
+    form_data = await request.form()
+    family_members = db.query(FamilyMember).all()
+
+    for member in family_members:
+        rating_key = f"rating_{member.id}"
+        if rating_key in form_data and form_data[rating_key]:
+            try:
+                rating_value = int(form_data[rating_key])
+                if 1 <= rating_value <= 10:
+                    game_rating = GameRating(
+                        game_id=game.id, family_member_id=member.id, rating=rating_value
+                    )
+                    db.add(game_rating)
+            except ValueError:
+                pass  # Skip invalid ratings
+
+    db.commit()
     return RedirectResponse(url="/?msg=Game+added+successfully", status_code=303)
 
 
@@ -135,8 +232,50 @@ async def get_game(
     game = db.query(Game).filter(Game.id == game_id).first()
     if not game:
         raise HTTPException(status_code=404, detail="Game not found")
+
+    # Get family members and their ratings for this game
+    family_members = db.query(FamilyMember).order_by(FamilyMember.name).all()
+    family_ratings = {
+        rating.family_member_id: rating.rating for rating in game.family_ratings
+    }
+
     return templates.TemplateResponse(
-        request, "game_detail.html", {"game": game, "msg": msg}
+        request,
+        "game_detail.html",
+        {
+            "game": game,
+            "msg": msg,
+            "family_members": family_members,
+            "family_ratings": family_ratings,
+        },
+    )
+
+
+@app.get("/games/{game_id}/edit")
+async def edit_game_form(
+    request: Request,
+    game_id: int = Path(..., gt=0),
+    db: Session = Depends(get_db),
+):
+    """Form to edit an existing game"""
+    game = db.query(Game).filter(Game.id == game_id).first()
+    if not game:
+        raise HTTPException(status_code=404, detail="Game not found")
+
+    # Get family members and their ratings for this game
+    family_members = db.query(FamilyMember).order_by(FamilyMember.name).all()
+    family_ratings = {
+        rating.family_member_id: rating.rating for rating in game.family_ratings
+    }
+
+    return templates.TemplateResponse(
+        request,
+        "edit_game.html",
+        {
+            "game": game,
+            "family_members": family_members,
+            "family_ratings": family_ratings,
+        },
     )
 
 
@@ -155,13 +294,13 @@ async def edit_game_form(
 
 @app.post("/games/{game_id}")
 async def update_game(
+    request: Request,
     game_id: int = Path(..., gt=0),
     title: str = Form(...),
     player_count: Optional[str] = Form(None),
     game_type: Optional[str] = Form(None),
     playtime: Optional[str] = Form(None),
     complexity: Optional[str] = Form(None),
-    rating: Optional[int] = Form(None),
     description: Optional[str] = Form(None),
     db: Session = Depends(get_db),
 ):
@@ -175,8 +314,28 @@ async def update_game(
     game.game_type = game_type or ""
     game.playtime = playtime or ""
     game.complexity = complexity or ""
-    game.rating = rating
     game.description = description or ""
+
+    # Handle family member ratings
+    form_data = await request.form()
+    family_members = db.query(FamilyMember).all()
+
+    # Clear existing ratings for this game
+    db.query(GameRating).filter(GameRating.game_id == game_id).delete()
+
+    # Add new ratings
+    for member in family_members:
+        rating_key = f"rating_{member.id}"
+        if rating_key in form_data and form_data[rating_key]:
+            try:
+                rating_value = int(form_data[rating_key])
+                if 1 <= rating_value <= 10:
+                    game_rating = GameRating(
+                        game_id=game.id, family_member_id=member.id, rating=rating_value
+                    )
+                    db.add(game_rating)
+            except ValueError:
+                pass  # Skip invalid ratings
 
     db.commit()
     db.refresh(game)

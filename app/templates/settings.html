@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - GameDex</title>
+    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/" class="text-2xl font-bold text-indigo-600">🎲 GameDex</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/"
+                        class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Home</a>
+                    <a href="/games"
+                        class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Games</a>
+                    <a href="/games/new"
+                        class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Add
+                        Game</a>
+                    <a href="/recommend"
+                        class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Recommendations</a>
+                    <a href="/settings" class="text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Settings</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="bg-white rounded-lg shadow-md p-8">
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">Settings</h1>
+                <p class="text-gray-600">Manage your family members for game ratings.</p>
+            </div>
+
+            <!-- Messages -->
+            {% if request.query_params.get('msg') %}
+            <div class="mb-6 p-4 bg-green-100 border border-green-300 text-green-800 rounded-lg">
+                {{ request.query_params.get('msg') }}
+            </div>
+            {% endif %}
+
+            {% if request.query_params.get('error') %}
+            <div class="mb-6 p-4 bg-red-100 border border-red-300 text-red-800 rounded-lg">
+                {{ request.query_params.get('error') }}
+            </div>
+            {% endif %}
+
+            <!-- Add Family Member Form -->
+            <div class="mb-8 p-6 bg-gray-50 rounded-lg">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">Add Family Member</h2>
+                <form method="POST" action="/settings/family-members" class="flex space-x-4">
+                    <input type="text" name="name" required
+                        class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="Enter family member name">
+                    <button type="submit"
+                        class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md font-medium transition-colors">
+                        ➕ Add Member
+                    </button>
+                </form>
+            </div>
+
+            <!-- Family Members List -->
+            <div>
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">Family Members</h2>
+                {% if family_members %}
+                <div class="space-y-3">
+                    {% for member in family_members %}
+                    <div class="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg">
+                        <div class="flex items-center">
+                            <span class="w-8 h-8 mr-3 text-indigo-600">👤</span>
+                            <div>
+                                <div class="font-medium text-gray-900">{{ member.name }}</div>
+                                <div class="text-sm text-gray-500">Added {{ member.created_at.strftime('%B %d, %Y') }}
+                                </div>
+                            </div>
+                        </div>
+                        <button data-member-id="{{ member.id }}" data-member-name="{{ member.name }}"
+                            class="delete-member-btn px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md font-medium transition-colors">
+                            🗑️ Delete
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-8 text-gray-500">
+                    <span class="text-4xl mb-4 block">👥</span>
+                    <p>No family members added yet.</p>
+                    <p class="text-sm">Add family members above to start rating games together!</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Back to Home -->
+            <div class="mt-8 pt-6 border-t border-gray-200">
+                <a href="/"
+                    class="inline-flex items-center px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-md font-medium transition-colors">
+                    ← Back to Home
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.delete-member-btn').forEach(button => {
+                button.addEventListener('click', function () {
+                    const memberId = this.getAttribute('data-member-id');
+                    const memberName = this.getAttribute('data-member-name');
+
+                    if (confirm(`Are you sure you want to delete "${memberName}"? This will also remove all their game ratings.`)) {
+                        fetch(`/settings/family-members/${memberId}`, {
+                            method: 'DELETE',
+                        }).then(() => {
+                            window.location.reload();
+                        }).catch(error => {
+                            console.error('Error:', error);
+                            alert('Failed to delete family member. Please try again.');
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>
