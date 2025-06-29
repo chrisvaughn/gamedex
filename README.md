@@ -16,7 +16,6 @@ A personal web app that helps you catalog, organize, and intelligently explore y
 - **Frontend**: Jinja2 Templates with HTMX
 - **Database**: SQLite (local) → PostgreSQL (production)
 - **AI**: OpenAI GPT API
-- **Hosting**: Fly.io
 - **Containerization**: Docker
 - **Package Management**: Poetry
 
@@ -117,41 +116,6 @@ def test_new_feature():
    docker run -p 8000:8000 -e OPENAI_API_KEY="your-key" gamedex
    ```
 
-## 🚀 Deployment
-
-### Fly.io Deployment
-
-1. **Install Fly CLI**
-
-   ```bash
-   curl -L https://fly.io/install.sh | sh
-   ```
-
-2. **Login to Fly**
-
-   ```bash
-   fly auth login
-   ```
-
-3. **Create the app**
-
-   ```bash
-   fly apps create gamedex
-   ```
-
-4. **Set secrets**
-
-   ```bash
-   fly secrets set OPENAI_API_KEY="your-openai-api-key"
-   fly secrets set DATABASE_URL="postgresql://..."
-   ```
-
-5. **Deploy**
-
-   ```bash
-   fly deploy
-   ```
-
 ## 🔧 Configuration
 
 ### Environment Variables
@@ -190,10 +154,6 @@ Ask natural language questions to get AI-powered game recommendations:
 - Environment variable configuration
 - SQL injection protection via SQLAlchemy
 - Input validation and sanitization
-
-## 📈 Monitoring
-
-The application includes health checks and is configured for monitoring on Fly.io with automatic restarts and scaling.
 
 ## 🤝 Contributing
 
