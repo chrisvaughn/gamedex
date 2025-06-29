@@ -8,6 +8,7 @@ from app.auth import create_session_token
 from app.database import get_db
 from app.main import app
 from app.models import Base
+from app.auth import create_session_token
 
 # Create in-memory SQLite database for testing
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
