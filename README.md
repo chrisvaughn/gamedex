@@ -28,6 +28,54 @@ A personal web app that helps you catalog, organize, and intelligently explore y
 - Docker (optional)
 - OpenAI API key (for AI features)
 
+### Environment Setup
+
+GameDex requires several environment variables to be set for security and functionality:
+
+#### Required Environment Variables
+
+1. **`SESSION_SECRET_KEY`** - Secret key for session management
+
+   ```bash
+   export SESSION_SECRET_KEY="your-very-long-random-secret-key-here"
+   ```
+
+   *Generate a secure key: `openssl rand -hex 32`*
+
+2. **`FAMILY_PASSWORD`** - Password for family access to the app
+
+   ```bash
+   export FAMILY_PASSWORD="your-family-password"
+   ```
+
+3. **`OPENAI_API_KEY`** - OpenAI API key for AI features
+
+   ```bash
+   export OPENAI_API_KEY="sk-your-openai-api-key"
+   ```
+
+#### Optional Environment Variables
+
+- **`DATABASE_URL`** - Database connection string (defaults to SQLite)
+
+  ```bash
+  export DATABASE_URL="postgresql://user:password@localhost/gamedex"
+  ```
+
+#### Environment File Setup
+
+Create a `.env` file in the project root for local development:
+
+```bash
+# Required
+SESSION_SECRET_KEY=your-very-long-random-secret-key-here
+FAMILY_PASSWORD=your-family-password
+OPENAI_API_KEY=sk-your-openai-api-key
+
+# Optional
+DATABASE_URL=sqlite:///./gamedex.db
+```
+
 ### Local Development
 
 1. **Clone the repository**
@@ -46,11 +94,16 @@ A personal web app that helps you catalog, organize, and intelligently explore y
 3. **Set up environment variables**
 
    ```bash
-   # Required: Database connection string
+   # Option 1: Export directly
+   export SESSION_SECRET_KEY="your-very-long-random-secret-key-here"
+   export FAMILY_PASSWORD="your-family-password"
    export DATABASE_URL="sqlite:///./gamedex.db"
-   
-   # Optional: OpenAI API key for AI features
    export OPENAI_API_KEY="your-openai-api-key"
+   export IS_PRODUCTION="false"
+
+   # Option 2: Use .env file
+   cp .env.example .env
+   # Edit .env with your values
    ```
 
 4. **Initialize the database**
@@ -68,6 +121,9 @@ A personal web app that helps you catalog, organize, and intelligently explore y
 
 6. **Visit the application**
    Open your browser and go to `http://localhost:8000`
+
+7. **Login**
+   Use your family password to access the application
 
 ### Testing
 
@@ -129,9 +185,34 @@ def test_new_feature():
 
    ```bash
    docker run -p 8000:8000 \
-     -e DATABASE_URL="sqlite:///./gamedex.db" \
-     -e OPENAI_API_KEY="your-key" \
+      -e DATABASE_URL="sqlite:///./gamedex.db" \
+     -e SESSION_SECRET_KEY="your-very-long-random-secret-key-here" \
+     -e FAMILY_PASSWORD="your-family-password" \
+     -e OPENAI_API_KEY="your-openai-api-key" \
+     -e IS_PRODUCTION="false" \
      gamedex
+   ```
+
+3. **Using Docker Compose (recommended)**
+
+   Create a `docker-compose.yml` file:
+
+   ```yaml
+   version: '3.8'
+   services:
+     gamedex:
+       build: .
+       ports:
+         - "8000:8000"
+       env_file:
+         - .env
+       restart: unless-stopped
+   ```
+
+   Then run:
+
+   ```bash
+   docker compose up -d
    ```
 
 ## 🔧 Configuration
@@ -143,6 +224,11 @@ def test_new_feature():
   - **PostgreSQL (production)**: `postgresql://user:password@localhost/gamedex`
   - **Test environment**: `sqlite:///./test.db`
 - `OPENAI_API_KEY` (Optional): Your OpenAI API key for AI features
+- `SESSION_SECRET_KEY`: Secret key for session management (generate with `openssl rand -hex 32`)
+- `FAMILY_PASSWORD`: Password for family access to the application
+- `IS_PRODUCTION` (Optional): Set to "true" to indicate production environment (defaults to "false")
+  - **Development**: `IS_PRODUCTION=false` or unset
+  - **Production**: `IS_PRODUCTION=true`
 
 ### Database Setup
 
