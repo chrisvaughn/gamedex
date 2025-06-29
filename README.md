@@ -46,16 +46,27 @@ A personal web app that helps you catalog, organize, and intelligently explore y
 3. **Set up environment variables**
 
    ```bash
+   # Required: Database connection string
+   export DATABASE_URL="sqlite:///./gamedex.db"
+   
+   # Optional: OpenAI API key for AI features
    export OPENAI_API_KEY="your-openai-api-key"
    ```
 
-4. **Run the application**
+4. **Initialize the database**
+
+   ```bash
+   # Run database migrations
+   poetry run alembic upgrade head
+   ```
+
+5. **Run the application**
 
    ```bash
    poetry run uvicorn app.main:app --reload
    ```
 
-5. **Visit the application**
+6. **Visit the application**
    Open your browser and go to `http://localhost:8000`
 
 ### Testing
@@ -67,12 +78,15 @@ GameDex includes a comprehensive test suite covering models, database operations
 **Run tests with pytest directly:**
 
 ```bash
+# Set up test database
+export DATABASE_URL="sqlite:///./test.db"
 poetry run pytest tests/ -v
 ```
 
 **Run specific test files:**
 
 ```bash
+export DATABASE_URL="sqlite:///./test.db"
 poetry run pytest tests/test_models.py -v
 poetry run pytest tests/test_api.py -v
 ```
@@ -80,6 +94,7 @@ poetry run pytest tests/test_api.py -v
 **Run tests with coverage:**
 
 ```bash
+export DATABASE_URL="sqlite:///./test.db"
 poetry run pytest tests/ --cov=app --cov-report=html
 ```
 
@@ -113,19 +128,56 @@ def test_new_feature():
 2. **Run the container**
 
    ```bash
-   docker run -p 8000:8000 -e OPENAI_API_KEY="your-key" gamedex
+   docker run -p 8000:8000 \
+     -e DATABASE_URL="sqlite:///./gamedex.db" \
+     -e OPENAI_API_KEY="your-key" \
+     gamedex
    ```
 
 ## 🔧 Configuration
 
 ### Environment Variables
 
-- `OPENAI_API_KEY`: Your OpenAI API key for AI features
-- `DATABASE_URL`: Database connection string (defaults to SQLite for local development)
+- `DATABASE_URL` **(Required)**: Database connection string
+  - **SQLite (local development)**: `sqlite:///./gamedex.db`
+  - **PostgreSQL (production)**: `postgresql://user:password@localhost/gamedex`
+  - **Test environment**: `sqlite:///./test.db`
+- `OPENAI_API_KEY` (Optional): Your OpenAI API key for AI features
 
-### Database
+### Database Setup
 
-The application uses SQLite for local development and PostgreSQL for production. The database is automatically created when you first run the application.
+The application requires a `DATABASE_URL` environment variable to be set. This ensures consistent database configuration across all environments and prevents accidental use of the wrong database.
+
+#### Database URL Examples
+
+```bash
+# Local SQLite development
+export DATABASE_URL="sqlite:///./gamedex.db"
+
+# PostgreSQL development
+export DATABASE_URL="postgresql://user:password@localhost/gamedex_dev"
+
+# PostgreSQL production
+export DATABASE_URL="postgresql://user:password@prod-server/gamedex_prod"
+
+# Test environment
+export DATABASE_URL="sqlite:///./test.db"
+```
+
+#### Running Migrations
+
+After setting up your `DATABASE_URL`, run migrations to create/update the database schema:
+
+```bash
+# Apply all pending migrations
+poetry run alembic upgrade head
+
+# Check current migration status
+poetry run alembic current
+
+# Create a new migration (after model changes)
+poetry run alembic revision --autogenerate -m "Description of changes"
+```
 
 ## 🤖 AI Features
 
