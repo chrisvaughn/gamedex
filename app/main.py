@@ -39,10 +39,13 @@ async def health_check(db: Session = Depends(get_db)):
             ),
         }
     except Exception as e:
+        import logging
+
+        logging.error("Health check failed", exc_info=True)
         return {
             "status": "unhealthy",
             "database": "disconnected",
-            "error": str(e),
+            "error": "An internal error occurred.",
             "environment": (
                 "production"
                 if os.getenv("IS_PRODUCTION", "false").lower() == "true"
