@@ -37,6 +37,8 @@
                         Game</a>
                     <a href="/recommend"
                         class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Recommendations</a>
+                    <a href="/settings"
+                        class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Settings</a>
                 </div>
             </div>
         </div>
@@ -74,8 +76,17 @@
             </div>
             <div class="bg-white rounded-lg shadow p-6 text-center">
                 <div class="text-3xl font-bold text-green-600">
-                    {% set rated_games = games|selectattr('rating', 'ne', None)|list %}
-                    {{ rated_games|selectattr('rating', '>=', 8)|list|length }}
+                    {% set highly_rated_count = 0 %}
+                    {% for game in games %}
+                    {% if family_ratings.get(game.id) %}
+                    {% for member_id, rating in family_ratings.get(game.id).items() %}
+                    {% if rating >= 8 %}
+                    {% set highly_rated_count = highly_rated_count + 1 %}
+                    {% endif %}
+                    {% endfor %}
+                    {% endif %}
+                    {% endfor %}
+                    {{ highly_rated_count }}
                 </div>
                 <div class="text-gray-600">Highly Rated</div>
             </div>
@@ -89,9 +100,18 @@
             </div>
             <div class="bg-white rounded-lg shadow p-6 text-center">
                 <div class="text-3xl font-bold text-orange-600">
-                    {% set rated_games = games|selectattr('rating', 'ne', None)|list %}
-                    {% if rated_games %}
-                    {{ "%.1f"|format(rated_games|map(attribute='rating')|sum / rated_games|length) }}
+                    {% set total_ratings = 0 %}
+                    {% set rating_count = 0 %}
+                    {% for game in games %}
+                    {% if family_ratings.get(game.id) %}
+                    {% for member_id, rating in family_ratings.get(game.id).items() %}
+                    {% set total_ratings = total_ratings + rating %}
+                    {% set rating_count = rating_count + 1 %}
+                    {% endfor %}
+                    {% endif %}
+                    {% endfor %}
+                    {% if rating_count > 0 %}
+                    {{ "%.1f"|format(total_ratings / rating_count) }}
                     {% else %}
                     0.0
                     {% endif %}
@@ -144,17 +164,28 @@
                             {% endif %}
                         </div>
 
-                        {% if game.rating %}
-                        <div class="mt-4 flex items-center">
-                            <div class="flex text-yellow-400">
-                                {% for i in range(game.rating) %}
-                                <span>★</span>
-                                {% endfor %}
-                                {% for i in range(10 - game.rating) %}
-                                <span class="text-gray-300">★</span>
-                                {% endfor %}
+                        {% if family_ratings.get(game.id) %}
+                        <div class="mt-4">
+                            <div class="text-sm text-gray-600 mb-2">Family Ratings:</div>
+                            {% for member in family_members %}
+                            {% if family_ratings.get(game.id).get(member.id) %}
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-600">{{ member.name }}:</span>
+                                <div class="flex items-center">
+                                    <div class="flex text-yellow-400">
+                                        {% for i in range(family_ratings.get(game.id).get(member.id)) %}
+                                        <span class="text-xs">★</span>
+                                        {% endfor %}
+                                        {% for i in range(10 - family_ratings.get(game.id).get(member.id)) %}
+                                        <span class="text-xs text-gray-300">★</span>
+                                        {% endfor %}
+                                    </div>
+                                    <span class="ml-1 text-gray-600">{{ family_ratings.get(game.id).get(member.id)
+                                        }}/10</span>
+                                </div>
                             </div>
-                            <span class="ml-2 text-sm text-gray-600">{{ game.rating }}/10</span>
+                            {% endif %}
+                            {% endfor %}
                         </div>
                         {% endif %}
 
