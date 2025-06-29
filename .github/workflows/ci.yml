@@ -43,6 +43,8 @@ jobs:
       run: poetry run isort --check-only --diff .
     
     - name: Run pytest
+      env:
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       run: poetry run pytest
     
   docker-build:
