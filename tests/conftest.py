@@ -62,7 +62,6 @@ def sample_game_data():
         "game_type": "Strategy",
         "playtime": "30-60 minutes",
         "complexity": "Medium",
-        "rating": 8,
     }
 
 
@@ -76,7 +75,6 @@ def sample_games_data():
             "game_type": "Strategy",
             "playtime": "60-90 minutes",
             "complexity": "Medium",
-            "rating": 8,
         },
         {
             "title": "Ticket to Ride",
@@ -84,7 +82,6 @@ def sample_games_data():
             "game_type": "Family",
             "playtime": "30-60 minutes",
             "complexity": "Easy",
-            "rating": 7,
         },
         {
             "title": "Pandemic",
@@ -92,6 +89,5 @@ def sample_games_data():
             "game_type": "Cooperative",
             "playtime": "45 minutes",
             "complexity": "Medium",
-            "rating": 9,
         },
     ]

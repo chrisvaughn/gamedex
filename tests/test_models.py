@@ -15,7 +15,6 @@ class TestGameModel:
         assert game.game_type is None
         assert game.playtime is None
         assert game.complexity is None
-        assert game.rating is None
         assert game.description is None
         # Timestamps are None until saved to database
         assert game.created_at is None
@@ -29,7 +28,6 @@ class TestGameModel:
             game_type="Strategy",
             playtime="60-90 minutes",
             complexity="Medium",
-            rating=8,
             description="A classic strategy game about building settlements",
         )
 
@@ -38,7 +36,6 @@ class TestGameModel:
         assert game.game_type == "Strategy"
         assert game.playtime == "60-90 minutes"
         assert game.complexity == "Medium"
-        assert game.rating == 8
         assert game.description == "A classic strategy game about building settlements"
 
     def test_game_repr(self):
@@ -70,19 +67,6 @@ class TestGameModel:
         # Check that they are close (within 1 second) since they're set at slightly different times
         time_diff = abs((game.updated_at - game.created_at).total_seconds())
         assert time_diff < 1.0
-
-    def test_game_rating_validation(self):
-        """Test that rating can be None or an integer"""
-        # Test with None rating
-        game1 = Game(title="Game 1", rating=None)
-        assert game1.rating is None
-
-        # Test with integer rating
-        game2 = Game(title="Game 2", rating=10)
-        assert game2.rating == 10
-
-        game3 = Game(title="Game 3", rating=1)
-        assert game3.rating == 1
 
     def test_game_string_fields(self):
         """Test that string fields can be empty or None"""
