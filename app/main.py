@@ -73,7 +73,7 @@ async def login(
             key="session",
             value=session_token,
             httponly=True,
-            secure=False,  # Set to True in production with HTTPS
+            secure=os.getenv("IS_PRODUCTION", "false").lower() == "true",
             samesite="lax",
             max_age=86400,  # 24 hours
         )

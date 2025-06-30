@@ -1,210 +1,177 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add New Game - GameDex</title>
-    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
+{% block title %}Add New Game - GameDex{% endblock %}
 
-<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-lg border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <a href="/" class="text-2xl font-bold text-indigo-600">🎲 GameDex</a>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <a href="/"
-                        class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Home</a>
-                    <a href="/games"
-                        class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Games</a>
-                    <a href="/games/new" class="text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Add Game</a>
-                    <a href="/recommend"
-                        class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Recommendations</a>
-                    <a href="/settings"
-                        class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Settings</a>
-                </div>
+{% block content %}
+<div class="bg-white rounded-lg shadow-md p-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Add New Game</h1>
+        <p class="text-gray-600">Add a new board game to your collection. You can also use AI to autofill game
+            information!</p>
+    </div>
+
+    <form method="POST" action="/games" class="space-y-6">
+        <!-- Game Title -->
+        <div>
+            <label for="title" class="block text-sm font-medium text-gray-700 mb-2">
+                Game Title *
+            </label>
+            <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                <input type="text" id="title" name="title" required
+                    class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="e.g., Catan, Ticket to Ride, Pandemic">
+                <button type="button" onclick="autofillGame()"
+                    class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md font-medium transition-colors">
+                    🤖 Autofill
+                </button>
             </div>
         </div>
-    </nav>
 
-    <!-- Main Content -->
-    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="bg-white rounded-lg shadow-md p-8">
-            <div class="mb-8">
-                <h1 class="text-3xl font-bold text-gray-900 mb-2">Add New Game</h1>
-                <p class="text-gray-600">Add a new board game to your collection. You can also use AI to autofill game
-                    information!</p>
-            </div>
-
-            <form method="POST" action="/games" class="space-y-6">
-                <!-- Game Title -->
-                <div>
-                    <label for="title" class="block text-sm font-medium text-gray-700 mb-2">
-                        Game Title *
-                    </label>
-                    <div class="flex space-x-2">
-                        <input type="text" id="title" name="title" required
-                            class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                            placeholder="e.g., Catan, Ticket to Ride, Pandemic">
-                        <button type="button" onclick="autofillGame()"
-                            class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md font-medium transition-colors">
-                            🤖 Autofill
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Player Count -->
-                <div>
-                    <label for="player_count" class="block text-sm font-medium text-gray-700 mb-2">
-                        Player Count
-                    </label>
-                    <input type="text" id="player_count" name="player_count"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                        placeholder="e.g., 2-4 players, 3-6 players">
-                </div>
-
-                <!-- Game Type -->
-                <div>
-                    <label for="game_type" class="block text-sm font-medium text-gray-700 mb-2">
-                        Game Type
-                    </label>
-                    <select id="game_type" name="game_type"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                        <option value="">Select a game type</option>
-                        <option value="Strategy">Strategy</option>
-                        <option value="Party">Party</option>
-                        <option value="Cooperative">Cooperative</option>
-                        <option value="Deck Building">Deck Building</option>
-                        <option value="Worker Placement">Worker Placement</option>
-                        <option value="Area Control">Area Control</option>
-                        <option value="Deduction">Deduction</option>
-                        <option value="Economic">Economic</option>
-                        <option value="Adventure">Adventure</option>
-                        <option value="Family">Family</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </div>
-
-                <!-- Playtime -->
-                <div>
-                    <label for="playtime" class="block text-sm font-medium text-gray-700 mb-2">
-                        Playtime
-                    </label>
-                    <input type="text" id="playtime" name="playtime"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                        placeholder="e.g., 30-60 minutes, 2-3 hours">
-                </div>
-
-                <!-- Complexity -->
-                <div>
-                    <label for="complexity" class="block text-sm font-medium text-gray-700 mb-2">
-                        Complexity
-                    </label>
-                    <select id="complexity" name="complexity"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                        <option value="">Select complexity level</option>
-                        <option value="Easy">Easy</option>
-                        <option value="Medium">Medium</option>
-                        <option value="Hard">Hard</option>
-                        <option value="Expert">Expert</option>
-                    </select>
-                </div>
-
-                <!-- Rating -->
-                <div>
-                    <label for="rating" class="block text-sm font-medium text-gray-700 mb-2">
-                        Your Rating (1-10)
-                    </label>
-                    <input type="number" id="rating" name="rating" min="1" max="10"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                        placeholder="Rate from 1 to 10">
-                </div>
-
-                <!-- Family Member Ratings -->
-                {% if family_members %}
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Family Member Ratings
-                    </label>
-                    <div class="space-y-3">
-                        {% for member in family_members %}
-                        <div class="flex items-center space-x-4">
-                            <label for="rating_{{ member.id }}" class="text-sm text-gray-600 min-w-[120px]">
-                                {{ member.name }}:
-                            </label>
-                            <input type="number" id="rating_{{ member.id }}" name="rating_{{ member.id }}" min="1"
-                                max="10"
-                                class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                                placeholder="1-10">
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
-
-                <!-- Submit Buttons -->
-                <div class="flex space-x-4 pt-6">
-                    <button type="submit"
-                        class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-6 rounded-lg font-medium transition-colors">
-                        ➕ Add Game
-                    </button>
-                    <a href="/"
-                        class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-3 px-6 rounded-lg font-medium text-center transition-colors">
-                        Cancel
-                    </a>
-                </div>
-            </form>
+        <!-- Player Count -->
+        <div>
+            <label for="player_count" class="block text-sm font-medium text-gray-700 mb-2">
+                Player Count
+            </label>
+            <input type="text" id="player_count" name="player_count"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="e.g., 2-4 players, 3-6 players">
         </div>
-    </main>
 
-    <script>
-        async function autofillGame() {
-            const title = document.getElementById('title').value;
-            if (!title) {
-                alert('Please enter a game title first');
-                return;
-            }
+        <!-- Game Type -->
+        <div>
+            <label for="game_type" class="block text-sm font-medium text-gray-700 mb-2">
+                Game Type
+            </label>
+            <select id="game_type" name="game_type"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                <option value="">Select a game type</option>
+                <option value="Strategy">Strategy</option>
+                <option value="Party">Party</option>
+                <option value="Cooperative">Cooperative</option>
+                <option value="Deck Building">Deck Building</option>
+                <option value="Worker Placement">Worker Placement</option>
+                <option value="Area Control">Area Control</option>
+                <option value="Deduction">Deduction</option>
+                <option value="Economic">Economic</option>
+                <option value="Adventure">Adventure</option>
+                <option value="Family">Family</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
 
-            // Show loading state
-            const autofillBtn = event.target;
-            const originalText = autofillBtn.textContent;
-            autofillBtn.textContent = '🤖 Loading...';
-            autofillBtn.disabled = true;
+        <!-- Playtime -->
+        <div>
+            <label for="playtime" class="block text-sm font-medium text-gray-700 mb-2">
+                Playtime
+            </label>
+            <input type="text" id="playtime" name="playtime"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="e.g., 30-60 minutes, 2-3 hours">
+        </div>
 
-            try {
-                // Use the new autofill endpoint
-                const response = await fetch('/games/autofill', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: new URLSearchParams({
-                        title: title
-                    })
-                });
+        <!-- Complexity -->
+        <div>
+            <label for="complexity" class="block text-sm font-medium text-gray-700 mb-2">
+                Complexity
+            </label>
+            <select id="complexity" name="complexity"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                <option value="">Select complexity level</option>
+                <option value="Easy">Easy</option>
+                <option value="Medium">Medium</option>
+                <option value="Hard">Hard</option>
+                <option value="Expert">Expert</option>
+            </select>
+        </div>
 
-                if (response.ok) {
-                    // Redirect to the game detail page
-                    window.location.href = response.url;
-                    return;
-                } else {
-                    alert('Failed to autofill game. Please try again or fill in the details manually.');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('An error occurred while autofilling the game.');
-            } finally {
-                // Restore button state
-                autofillBtn.textContent = originalText;
-                autofillBtn.disabled = false;
-            }
+        <!-- Rating -->
+        <div>
+            <label for="rating" class="block text-sm font-medium text-gray-700 mb-2">
+                Your Rating (1-10)
+            </label>
+            <input type="number" id="rating" name="rating" min="1" max="10"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="Rate from 1 to 10">
+        </div>
+
+        <!-- Family Member Ratings -->
+        {% if family_members %}
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+                Family Member Ratings
+            </label>
+            <div class="space-y-3">
+                {% for member in family_members %}
+                <div class="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                    <label for="rating_{{ member.id }}" class="text-sm text-gray-600 sm:min-w-[120px]">
+                        {{ member.name }}:
+                    </label>
+                    <input type="number" id="rating_{{ member.id }}" name="rating_{{ member.id }}" min="1" max="10"
+                        class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="1-10">
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Submit Buttons -->
+        <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 pt-6">
+            <button type="submit"
+                class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-6 rounded-lg font-medium transition-colors">
+                ➕ Add Game
+            </button>
+            <a href="/"
+                class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-3 px-6 rounded-lg font-medium text-center transition-colors">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function autofillGame() {
+        const title = document.getElementById('title').value;
+        if (!title) {
+            alert('Please enter a game title first');
+            return;
         }
-    </script>
-</body>
 
-</html>
+        // Show loading state
+        const autofillBtn = event.target;
+        const originalText = autofillBtn.textContent;
+        autofillBtn.textContent = '🤖 Loading...';
+        autofillBtn.disabled = true;
+
+        try {
+            // Use the new autofill endpoint
+            const response = await fetch('/games/autofill', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    title: title
+                })
+            });
+
+            if (response.ok) {
+                // Redirect to the game detail page
+                window.location.href = response.url;
+                return;
+            } else {
+                alert('Failed to autofill game. Please try again or fill in the details manually.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred while autofilling the game.');
+        } finally {
+            // Restore button state
+            autofillBtn.textContent = originalText;
+            autofillBtn.disabled = false;
+        }
+    }
+</script>
+{% endblock %}
