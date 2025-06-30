@@ -3,11 +3,12 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
+from sqlmodel import SQLModel
 
 from app.auth import create_session_token
 from app.database import get_db
 from app.main import app
-from app.models import Base
+from app.models import FamilyMember, Game, GameRating
 
 # Create in-memory SQLite database for testing
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
@@ -33,7 +34,7 @@ def override_get_db():
 def db_session():
     """Create a fresh database session for each test"""
     # Create tables
-    Base.metadata.create_all(bind=engine)
+    SQLModel.metadata.create_all(bind=engine)
 
     # Create session
     session = TestingSessionLocal()
@@ -42,7 +43,7 @@ def db_session():
     finally:
         session.close()
         # Drop tables
-        Base.metadata.drop_all(bind=engine)
+        SQLModel.metadata.drop_all(bind=engine)
 
 
 @pytest.fixture(scope="function")

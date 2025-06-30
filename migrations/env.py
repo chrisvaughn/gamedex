@@ -17,9 +17,10 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-from app.models import Base
+from sqlmodel import SQLModel
 
-target_metadata = Base.metadata
+# Import all models to ensure they are registered with SQLModel
+target_metadata = SQLModel.metadata
 
 # Get database URL from environment variable
 DATABASE_URL = os.getenv("DATABASE_URL")

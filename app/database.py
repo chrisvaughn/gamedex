@@ -3,6 +3,7 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
+from sqlmodel import SQLModel
 
 # Database URL
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -31,3 +32,8 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+# Create all tables
+def create_db_and_tables():
+    SQLModel.metadata.create_all(engine)
