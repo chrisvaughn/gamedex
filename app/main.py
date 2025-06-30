@@ -479,6 +479,8 @@ async def autofill_game(
 
     db.commit()
     db.refresh(game)
+    if not game:
+        return RedirectResponse(url="/?msg=Invalid+game+ID", status_code=303)
     return RedirectResponse(
         url=f"/games/{game_id}?msg=Game+metadata+updated+with+AI", status_code=303
     )
