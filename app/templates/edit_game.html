@@ -1,236 +1,208 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit {{ game.title }} - GameDex</title>
-    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
+{% block title %}Edit {{ game.title }} - GameDex{% endblock %}
 
-<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-lg border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <a href="/" class="text-2xl font-bold text-indigo-600">🎲 GameDex</a>
-                </div>
+{% block content %}
+<div class="bg-white rounded-lg shadow-md p-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Edit Game</h1>
+        <p class="text-gray-600">Update the details for "{{ game.title }}". You can also use AI to autofill
+            missing information!</p>
+    </div>
+
+    <form method="POST" action="/games/{{ game.id }}" class="space-y-6">
+        <!-- Game Title -->
+        <div>
+            <label for="title" class="block text-sm font-medium text-gray-700 mb-2">
+                Game Title *
+            </label>
+            <input type="text" id="title" name="title" required value="{{ game.title }}"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="e.g., Catan, Ticket to Ride, Pandemic">
+        </div>
+
+        <!-- Player Count -->
+        <div>
+            <label for="player_count" class="block text-sm font-medium text-gray-700 mb-2">
+                Player Count
+            </label>
+            <input type="text" id="player_count" name="player_count" value="{{ game.player_count or '' }}"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="e.g., 2-4 players, 3-6 players">
+        </div>
+
+        <!-- Game Type -->
+        <div>
+            <label for="game_type" class="block text-sm font-medium text-gray-700 mb-2">
+                Game Type
+            </label>
+            <select id="game_type" name="game_type"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                <option value="">Select a game type</option>
+                <option value="Strategy" {% if game.game_type=="Strategy" %}selected{% endif %}>Strategy
+                </option>
+                <option value="Party" {% if game.game_type=="Party" %}selected{% endif %}>Party</option>
+                <option value="Cooperative" {% if game.game_type=="Cooperative" %}selected{% endif %}>
+                    Cooperative</option>
+                <option value="Deck Building" {% if game.game_type=="Deck Building" %}selected{% endif %}>Deck
+                    Building</option>
+                <option value="Worker Placement" {% if game.game_type=="Worker Placement" %}selected{% endif %}>
+                    Worker Placement</option>
+                <option value="Area Control" {% if game.game_type=="Area Control" %}selected{% endif %}>Area
+                    Control</option>
+                <option value="Deduction" {% if game.game_type=="Deduction" %}selected{% endif %}>Deduction
+                </option>
+                <option value="Economic" {% if game.game_type=="Economic" %}selected{% endif %}>Economic
+                </option>
+                <option value="Adventure" {% if game.game_type=="Adventure" %}selected{% endif %}>Adventure
+                </option>
+                <option value="Family" {% if game.game_type=="Family" %}selected{% endif %}>Family</option>
+                <option value="Other" {% if game.game_type=="Other" %}selected{% endif %}>Other</option>
+            </select>
+        </div>
+
+        <!-- Playtime -->
+        <div>
+            <label for="playtime" class="block text-sm font-medium text-gray-700 mb-2">
+                Playtime
+            </label>
+            <input type="text" id="playtime" name="playtime" value="{{ game.playtime or '' }}"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="e.g., 30-60 minutes, 2-3 hours">
+        </div>
+
+        <!-- Complexity -->
+        <div>
+            <label for="complexity" class="block text-sm font-medium text-gray-700 mb-2">
+                Complexity
+            </label>
+            <select id="complexity" name="complexity"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                <option value="">Select complexity level</option>
+                <option value="Easy" {% if game.complexity=="Easy" %}selected{% endif %}>Easy</option>
+                <option value="Medium" {% if game.complexity=="Medium" %}selected{% endif %}>Medium</option>
+                <option value="Hard" {% if game.complexity=="Hard" %}selected{% endif %}>Hard</option>
+                <option value="Expert" {% if game.complexity=="Expert" %}selected{% endif %}>Expert</option>
+            </select>
+        </div>
+
+        <!-- Family Member Ratings -->
+        {% if family_members %}
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+                Family Member Ratings
+            </label>
+            <div class="space-y-4">
+                {% for member in family_members %}
                 <div class="flex items-center space-x-4">
-                    <a href="/"
-                        class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Home</a>
-                    <a href="/games"
-                        class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Games</a>
-                    <a href="/games/new"
-                        class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Add
-                        Game</a>
-                    <a href="/recommend"
-                        class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Recommendations</a>
-                    <a href="/settings"
-                        class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Settings</a>
-                </div>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Main Content -->
-    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="bg-white rounded-lg shadow-md p-8">
-            <div class="mb-8">
-                <h1 class="text-3xl font-bold text-gray-900 mb-2">Edit Game</h1>
-                <p class="text-gray-600">Update the details for "{{ game.title }}". You can also use AI to autofill
-                    missing information!</p>
-            </div>
-
-            <form method="POST" action="/games/{{ game.id }}" class="space-y-6">
-                <!-- Game Title -->
-                <div>
-                    <label for="title" class="block text-sm font-medium text-gray-700 mb-2">
-                        Game Title *
+                    <label class="text-sm text-gray-600 min-w-[120px]">
+                        {{ member.name }}:
                     </label>
-                    <input type="text" id="title" name="title" required value="{{ game.title }}"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                        placeholder="e.g., Catan, Ticket to Ride, Pandemic">
-                </div>
-
-                <!-- Player Count -->
-                <div>
-                    <label for="player_count" class="block text-sm font-medium text-gray-700 mb-2">
-                        Player Count
-                    </label>
-                    <input type="text" id="player_count" name="player_count" value="{{ game.player_count or '' }}"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                        placeholder="e.g., 2-4 players, 3-6 players">
-                </div>
-
-                <!-- Game Type -->
-                <div>
-                    <label for="game_type" class="block text-sm font-medium text-gray-700 mb-2">
-                        Game Type
-                    </label>
-                    <select id="game_type" name="game_type"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                        <option value="">Select a game type</option>
-                        <option value="Strategy" {% if game.game_type=="Strategy" %}selected{% endif %}>Strategy
-                        </option>
-                        <option value="Party" {% if game.game_type=="Party" %}selected{% endif %}>Party</option>
-                        <option value="Cooperative" {% if game.game_type=="Cooperative" %}selected{% endif %}>
-                            Cooperative</option>
-                        <option value="Deck Building" {% if game.game_type=="Deck Building" %}selected{% endif %}>Deck
-                            Building</option>
-                        <option value="Worker Placement" {% if game.game_type=="Worker Placement" %}selected{% endif %}>
-                            Worker Placement</option>
-                        <option value="Area Control" {% if game.game_type=="Area Control" %}selected{% endif %}>Area
-                            Control</option>
-                        <option value="Deduction" {% if game.game_type=="Deduction" %}selected{% endif %}>Deduction
-                        </option>
-                        <option value="Economic" {% if game.game_type=="Economic" %}selected{% endif %}>Economic
-                        </option>
-                        <option value="Adventure" {% if game.game_type=="Adventure" %}selected{% endif %}>Adventure
-                        </option>
-                        <option value="Family" {% if game.game_type=="Family" %}selected{% endif %}>Family</option>
-                        <option value="Other" {% if game.game_type=="Other" %}selected{% endif %}>Other</option>
-                    </select>
-                </div>
-
-                <!-- Playtime -->
-                <div>
-                    <label for="playtime" class="block text-sm font-medium text-gray-700 mb-2">
-                        Playtime
-                    </label>
-                    <input type="text" id="playtime" name="playtime" value="{{ game.playtime or '' }}"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                        placeholder="e.g., 30-60 minutes, 2-3 hours">
-                </div>
-
-                <!-- Complexity -->
-                <div>
-                    <label for="complexity" class="block text-sm font-medium text-gray-700 mb-2">
-                        Complexity
-                    </label>
-                    <select id="complexity" name="complexity"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                        <option value="">Select complexity level</option>
-                        <option value="Easy" {% if game.complexity=="Easy" %}selected{% endif %}>Easy</option>
-                        <option value="Medium" {% if game.complexity=="Medium" %}selected{% endif %}>Medium</option>
-                        <option value="Hard" {% if game.complexity=="Hard" %}selected{% endif %}>Hard</option>
-                        <option value="Expert" {% if game.complexity=="Expert" %}selected{% endif %}>Expert</option>
-                    </select>
-                </div>
-
-                <!-- Family Member Ratings -->
-                {% if family_members %}
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Family Member Ratings
-                    </label>
-                    <div class="space-y-4">
-                        {% for member in family_members %}
-                        <div class="flex items-center space-x-4">
-                            <label class="text-sm text-gray-600 min-w-[120px]">
-                                {{ member.name }}:
-                            </label>
-                            <div class="flex items-center">
-                                <div class="flex text-gray-300 cursor-pointer" onclick="setRating({{ member.id }}, 1)">
-                                    <span class="text-xl hover:scale-110 transition-transform" data-rating="1">★</span>
-                                </div>
-                                <div class="flex text-gray-300 cursor-pointer" onclick="setRating({{ member.id }}, 2)">
-                                    <span class="text-xl hover:scale-110 transition-transform" data-rating="2">★</span>
-                                </div>
-                                <div class="flex text-gray-300 cursor-pointer" onclick="setRating({{ member.id }}, 3)">
-                                    <span class="text-xl hover:scale-110 transition-transform" data-rating="3">★</span>
-                                </div>
-                                <div class="flex text-gray-300 cursor-pointer" onclick="setRating({{ member.id }}, 4)">
-                                    <span class="text-xl hover:scale-110 transition-transform" data-rating="4">★</span>
-                                </div>
-                                <div class="flex text-gray-300 cursor-pointer" onclick="setRating({{ member.id }}, 5)">
-                                    <span class="text-xl hover:scale-110 transition-transform" data-rating="5">★</span>
-                                </div>
-                                <div class="flex text-gray-300 cursor-pointer" onclick="setRating({{ member.id }}, 6)">
-                                    <span class="text-xl hover:scale-110 transition-transform" data-rating="6">★</span>
-                                </div>
-                                <div class="flex text-gray-300 cursor-pointer" onclick="setRating({{ member.id }}, 7)">
-                                    <span class="text-xl hover:scale-110 transition-transform" data-rating="7">★</span>
-                                </div>
-                                <div class="flex text-gray-300 cursor-pointer" onclick="setRating({{ member.id }}, 8)">
-                                    <span class="text-xl hover:scale-110 transition-transform" data-rating="8">★</span>
-                                </div>
-                                <div class="flex text-gray-300 cursor-pointer" onclick="setRating({{ member.id }}, 9)">
-                                    <span class="text-xl hover:scale-110 transition-transform" data-rating="9">★</span>
-                                </div>
-                                <div class="flex text-gray-300 cursor-pointer" onclick="setRating({{ member.id }}, 10)">
-                                    <span class="text-xl hover:scale-110 transition-transform" data-rating="10">★</span>
-                                </div>
-                                <span class="ml-2 text-sm text-gray-600" id="rating-display-{{ member.id }}">
-                                    {% if family_ratings.get(member.id) %}{{ family_ratings.get(member.id) }}{% else
-                                    %}0{% endif %}/10
-                                </span>
-                            </div>
-                            <input type="hidden" id="rating_{{ member.id }}" name="rating_{{ member.id }}"
-                                value="{{ family_ratings.get(member.id, '') }}">
+                    <div class="flex items-center">
+                        <div class="flex text-gray-300 cursor-pointer" onclick="setRating({{ member.id }}, 1)">
+                            <span class="text-xl hover:scale-110 transition-transform" data-rating="1">★</span>
                         </div>
-                        {% endfor %}
+                        <div class="flex text-gray-300 cursor-pointer" onclick="setRating({{ member.id }}, 2)">
+                            <span class="text-xl hover:scale-110 transition-transform" data-rating="2">★</span>
+                        </div>
+                        <div class="flex text-gray-300 cursor-pointer" onclick="setRating({{ member.id }}, 3)">
+                            <span class="text-xl hover:scale-110 transition-transform" data-rating="3">★</span>
+                        </div>
+                        <div class="flex text-gray-300 cursor-pointer" onclick="setRating({{ member.id }}, 4)">
+                            <span class="text-xl hover:scale-110 transition-transform" data-rating="4">★</span>
+                        </div>
+                        <div class="flex text-gray-300 cursor-pointer" onclick="setRating({{ member.id }}, 5)">
+                            <span class="text-xl hover:scale-110 transition-transform" data-rating="5">★</span>
+                        </div>
+                        <div class="flex text-gray-300 cursor-pointer" onclick="setRating({{ member.id }}, 6)">
+                            <span class="text-xl hover:scale-110 transition-transform" data-rating="6">★</span>
+                        </div>
+                        <div class="flex text-gray-300 cursor-pointer" onclick="setRating({{ member.id }}, 7)">
+                            <span class="text-xl hover:scale-110 transition-transform" data-rating="7">★</span>
+                        </div>
+                        <div class="flex text-gray-300 cursor-pointer" onclick="setRating({{ member.id }}, 8)">
+                            <span class="text-xl hover:scale-110 transition-transform" data-rating="8">★</span>
+                        </div>
+                        <div class="flex text-gray-300 cursor-pointer" onclick="setRating({{ member.id }}, 9)">
+                            <span class="text-xl hover:scale-110 transition-transform" data-rating="9">★</span>
+                        </div>
+                        <div class="flex text-gray-300 cursor-pointer" onclick="setRating({{ member.id }}, 10)">
+                            <span class="text-xl hover:scale-110 transition-transform" data-rating="10">★</span>
+                        </div>
+                        <span class="ml-2 text-sm text-gray-600" id="rating-display-{{ member.id }}">
+                            {% if family_ratings.get(member.id) %}{{ family_ratings.get(member.id) }}{% else
+                            %}0{% endif %}/10
+                        </span>
                     </div>
+                    <input type="hidden" id="rating_{{ member.id }}" name="rating_{{ member.id }}"
+                        value="{{ family_ratings.get(member.id, '') }}">
                 </div>
-                {% endif %}
-
-                <!-- Description -->
-                <div>
-                    <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
-                        Description
-                    </label>
-                    <textarea id="description" name="description" rows="4"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                        placeholder="Enter a description of the game...">{{ game.description or '' }}</textarea>
-                </div>
-
-                <!-- Submit Buttons -->
-                <div class="flex space-x-4 pt-6">
-                    <button type="submit"
-                        class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-6 rounded-lg font-medium transition-colors">
-                        💾 Save Changes
-                    </button>
-                    <a href="/games/{{ game.id }}"
-                        class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-3 px-6 rounded-lg font-medium text-center transition-colors">
-                        Cancel
-                    </a>
-                </div>
-            </form>
+                {% endfor %}
+            </div>
         </div>
-    </main>
-    <script>
-        // Initialize star ratings on page load
-        document.addEventListener('DOMContentLoaded', function () {
-            {% for member in family_members %}
-            {% if family_ratings.get(member.id) %}
-            updateStarDisplay({{ member.id }}, {{ family_ratings.get(member.id) }});
         {% endif %}
-        {% endfor %}
+
+        <!-- Description -->
+        <div>
+            <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
+                Description
+            </label>
+            <textarea id="description" name="description" rows="4"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="Enter a description of the game...">{{ game.description or '' }}</textarea>
+        </div>
+
+        <!-- Submit Buttons -->
+        <div class="flex space-x-4 pt-6">
+            <button type="submit"
+                class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-6 rounded-lg font-medium transition-colors">
+                💾 Save Changes
+            </button>
+            <a href="/games/{{ game.id }}"
+                class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-3 px-6 rounded-lg font-medium text-center transition-colors">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Initialize star ratings on page load
+    document.addEventListener('DOMContentLoaded', function () {
+        {% for member in family_members %}
+        {% if family_ratings.get(member.id) %}
+        updateStarDisplay({{ member.id }}, {{ family_ratings.get(member.id) }});
+    {% endif %}
+    {% endfor %}
+    });
+
+    function setRating(memberId, rating) {
+        // Update the hidden input field
+        document.getElementById('rating_' + memberId).value = rating;
+
+        // Update the display
+        updateStarDisplay(memberId, rating);
+    }
+
+    function updateStarDisplay(memberId, rating) {
+        const container = document.querySelector('[onclick="setRating(' + memberId + ', 1)"]').parentElement.parentElement;
+        const stars = container.querySelectorAll('[data-rating]');
+        const display = document.getElementById('rating-display-' + memberId);
+
+        // Update star colors
+        stars.forEach((star, index) => {
+            const starRating = index + 1;
+            if (starRating <= rating) {
+                star.style.color = '#fbbf24'; // yellow-400
+            } else {
+                star.style.color = '#d1d5db'; // gray-300
+            }
         });
 
-        function setRating(memberId, rating) {
-            // Update the hidden input field
-            document.getElementById('rating_' + memberId).value = rating;
-
-            // Update the display
-            updateStarDisplay(memberId, rating);
-        }
-
-        function updateStarDisplay(memberId, rating) {
-            const container = document.querySelector(`[onclick="setRating(${memberId}, 1)"]`).parentElement.parentElement;
-            const stars = container.querySelectorAll('[data-rating]');
-            const display = document.getElementById('rating-display-' + memberId);
-
-            // Update star colors
-            stars.forEach((star, index) => {
-                const starRating = index + 1;
-                if (starRating <= rating) {
-                    star.style.color = '#fbbf24'; // yellow-400 } else { star.style.color='#d1d5db' ; //
-                    gray - 300
-                }
-            }); // Update display text display.textContent=rating + '/10' ; } </script>
-
-</body>
-
-</html>
+        // Update display text
+        display.textContent = rating + '/10';
+    }
+</script>
+{% endblock %}

@@ -81,7 +81,7 @@ async def get_game_recommendations(
     Returns:
         List of recommended games with reasoning
     """
-    if not os.getenv("OPENAI_API_KEY") or not available_games:
+    if not client or not available_games:
         return []
 
     try:
