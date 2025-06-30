@@ -9,7 +9,7 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from .ai_utils import get_game_metadata
+from .ai_utils import get_game_metadata, get_game_recommendations
 from .auth import check_family_password, create_session_token, require_auth
 from .database import engine, get_db
 from .models import FamilyMember, Game, GameRating
@@ -501,10 +501,58 @@ async def get_recommendations(
     # Require authentication
     require_auth(request)
 
-    # This would integrate with your AI recommendation system
-    # For now, just redirect back with a placeholder message
-    return RedirectResponse(
-        url="/recommend?msg=Recommendation+feature+coming+soon", status_code=303
+    # Get all games from the database
+    games = db.query(Game).all()
+
+    if not games:
+        return templates.TemplateResponse(
+            request,
+            "recommendations.html",
+            {
+                "error": "No games in your collection. Add some games first to get recommendations!",
+                "games": [],
+            },
+        )
+
+    # Convert games to the format expected by get_game_recommendations
+    available_games = []
+    for game in games:
+        available_games.append(
+            {
+                "title": game.title,
+                "player_count": game.player_count or "N/A",
+                "game_type": game.game_type or "N/A",
+                "playtime": game.playtime or "N/A",
+                "complexity": game.complexity or "N/A",
+                "description": game.description or "",
+            }
+        )
+
+    # Get AI recommendations
+    recommendations = await get_game_recommendations(
+        query, available_games, max_recommendations=5
+    )
+
+    # Get family members and ratings for displaying in recommendations
+    family_members = db.query(FamilyMember).order_by(FamilyMember.name).all()
+    family_ratings = {}
+
+    for game in games:
+        family_ratings[game.id] = {
+            rating.family_member_id: rating.rating for rating in game.family_ratings
+        }
+
+    return templates.TemplateResponse(
+        request,
+        "recommendations.html",
+        {
+            "query": query,
+            "recommendations": recommendations,
+            "games": games,
+            "family_members": family_members,
+            "family_ratings": family_ratings,
+            "total_games": len(games),
+        },
     )
 
 
