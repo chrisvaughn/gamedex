@@ -23,6 +23,7 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
 
+@app.head("/healthz")
 @app.get("/healthz")
 async def health_check(db: Session = Depends(get_db)):
     """Health check endpoint that verifies database connectivity"""
