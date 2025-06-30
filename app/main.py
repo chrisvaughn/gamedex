@@ -3,6 +3,7 @@ from typing import List, Optional
 
 import uvicorn
 from fastapi import Depends, FastAPI, Form, HTTPException, Path, Query, Request
+from urllib.parse import urlparse
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -435,9 +436,12 @@ async def update_game(
                 pass  # Skip invalid ratings
 
     db.commit()
-    return RedirectResponse(
-        url=f"/games/{game_id}?msg=Game+updated+successfully", status_code=303
-    )
+    from urllib.parse import urlparse
+    redirect_url = f"/games/{game_id}?msg=Game+updated+successfully"
+    parsed_url = urlparse(redirect_url)
+    if not parsed_url.netloc and not parsed_url.scheme:
+        return RedirectResponse(url=redirect_url, status_code=303)
+    return RedirectResponse(url="/?msg=Invalid+redirect", status_code=303)
 
 
 @app.delete("/games/{game_id}")
