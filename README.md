@@ -67,12 +67,9 @@ GameDex requires several environment variables to be set for security and functi
 Create a `.env` file in the project root for local development:
 
 ```bash
-# Required
 SESSION_SECRET_KEY=your-very-long-random-secret-key-here
 FAMILY_PASSWORD=your-family-password
 OPENAI_API_KEY=sk-your-openai-api-key
-
-# Optional
 DATABASE_URL=sqlite:///./gamedex.db
 ```
 
@@ -100,10 +97,6 @@ DATABASE_URL=sqlite:///./gamedex.db
    export DATABASE_URL="sqlite:///./gamedex.db"
    export OPENAI_API_KEY="your-openai-api-key"
    export IS_PRODUCTION="false"
-
-   # Option 2: Use .env file
-   cp .env.example .env
-   # Edit .env with your values
    ```
 
 4. **Initialize the database**

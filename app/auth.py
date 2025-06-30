@@ -11,9 +11,6 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Session management
 SESSION_SECRET_KEY = os.getenv("SESSION_SECRET_KEY")
-serializer = URLSafeTimedSerializer(SESSION_SECRET_KEY)
-
-# Family password (you can change this)
 FAMILY_PASSWORD = os.getenv("FAMILY_PASSWORD")
 
 if not SESSION_SECRET_KEY:
@@ -26,24 +23,21 @@ if not FAMILY_PASSWORD:
     )
 
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify a password against its hash"""
-    return pwd_context.verify(plain_password, hashed_password)
-
-
-def get_password_hash(password: str) -> str:
-    """Hash a password"""
-    return pwd_context.hash(password)
+# Create serializer function to avoid import-time issues
+def get_serializer():
+    return URLSafeTimedSerializer(SESSION_SECRET_KEY)
 
 
 def create_session_token() -> str:
     """Create a session token"""
+    serializer = get_serializer()
     return serializer.dumps({"authenticated": True})
 
 
 def verify_session_token(token: str) -> bool:
     """Verify a session token"""
     try:
+        serializer = get_serializer()
         data = serializer.loads(token, max_age=86400)  # 24 hours
         return data.get("authenticated", False)
     except:
