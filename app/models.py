@@ -9,7 +9,7 @@ class FamilyMember(SQLModel, table=True):
 
     id: Optional[int] = Field(default=None, primary_key=True, index=True)
     name: str = Field(max_length=100, nullable=False, unique=True)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    created_at: Optional[datetime] = Field(default=None, nullable=True)
 
     # Relationship to ratings
     ratings: List["GameRating"] = Relationship(
@@ -31,11 +31,8 @@ class Game(SQLModel, table=True):
     playtime: Optional[str] = Field(max_length=100, nullable=True)
     complexity: Optional[str] = Field(max_length=100, nullable=True)
     description: Optional[str] = Field(nullable=True)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
-    updated_at: datetime = Field(
-        default_factory=lambda: datetime.now(UTC),
-        sa_column_kwargs={"onupdate": lambda: datetime.now(UTC)},
-    )
+    created_at: Optional[datetime] = Field(default=None, nullable=True)
+    updated_at: Optional[datetime] = Field(default=None, nullable=True)
 
     # Relationship to family member ratings
     family_ratings: List["GameRating"] = Relationship(
@@ -53,11 +50,8 @@ class GameRating(SQLModel, table=True):
     game_id: int = Field(foreign_key="games.id", nullable=False)
     family_member_id: int = Field(foreign_key="family_members.id", nullable=False)
     rating: int = Field(nullable=False)  # 1-10 rating
-    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
-    updated_at: datetime = Field(
-        default_factory=lambda: datetime.now(UTC),
-        sa_column_kwargs={"onupdate": lambda: datetime.now(UTC)},
-    )
+    created_at: Optional[datetime] = Field(default=None, nullable=True)
+    updated_at: Optional[datetime] = Field(default=None, nullable=True)
 
     # Relationships
     game: Optional[Game] = Relationship(back_populates="family_ratings")
