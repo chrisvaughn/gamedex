@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from .ai_utils import get_game_metadata
 from .auth import check_family_password, create_session_token, require_auth
 from .database import engine, get_db
-from .models import Base, FamilyMember, Game, GameRating
+from .models import FamilyMember, Game, GameRating
 
 app = FastAPI(title="GameDex", description="Board Game Collection Manager")
 
