@@ -39,6 +39,15 @@ class Game(SQLModel, table=True):
         back_populates="game", sa_relationship_kwargs={"cascade": "all, delete-orphan"}
     )
 
+    @property
+    def average_rating(self) -> Optional[float]:
+        """Calculate the average rating from all family members for this game."""
+        if not self.family_ratings:
+            return None
+
+        total_rating = sum(rating.rating for rating in self.family_ratings)
+        return round(total_rating / len(self.family_ratings), 1)
+
     def __repr__(self):
         return f"<Game(id={self.id}, title='{self.title}')>"
 

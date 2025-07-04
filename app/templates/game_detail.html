@@ -8,7 +8,7 @@
     <ol class="flex items-center space-x-2 text-sm text-gray-600">
         <li><a href="/" class="hover:text-indigo-600">Home</a></li>
         <li><span class="mx-2">/</span></li>
-        <li><a href="/games" class="hover:text-indigo-600">Games</a></li>
+        <li><a href="/" class="hover:text-indigo-600">Home</a></li>
         <li><span class="mx-2">/</span></li>
         <li class="text-gray-900 font-medium">{{ game.title }}</li>
     </ol>
@@ -28,9 +28,9 @@
                 {% endif %}
             </div>
             <div class="flex space-x-2">
-                <a href="/games"
+                <a href="/"
                     class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-lg font-medium transition-colors">
-                    ← Back to Games
+                    ← Back to Home
                 </a>
             </div>
         </div>
@@ -121,6 +121,27 @@
                                 {% endif %}
                                 {% endfor %}
                             </div>
+
+                            <!-- Average Rating -->
+                            {% if game.average_rating %}
+                            <div class="mt-3 pt-3 border-t border-gray-200">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-medium text-gray-900">Average Rating:</span>
+                                    <div class="flex items-center">
+                                        <div class="flex text-yellow-400 mr-2">
+                                            {% for i in range(game.average_rating|int) %}
+                                            <span class="text-sm">★</span>
+                                            {% endfor %}
+                                            {% for i in range(10 - (game.average_rating|int)) %}
+                                            <span class="text-sm text-gray-300">★</span>
+                                            {% endfor %}
+                                        </div>
+                                        <span class="text-sm font-medium text-gray-900">{{ game.average_rating
+                                            }}/10</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
                         </div>
                     </div>
                     {% endif %}

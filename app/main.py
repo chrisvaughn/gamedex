@@ -178,63 +178,6 @@ async def delete_family_member(
     )
 
 
-@app.get("/games")
-async def list_games(
-    request: Request,
-    search: Optional[str] = Query(None),
-    game_type: Optional[str] = Query(None),
-    complexity: Optional[str] = Query(None),
-    sort: Optional[str] = Query(None),
-    msg: Optional[str] = None,
-    db: Session = Depends(get_db),
-):
-    """List all games with optional filtering and sorting"""
-    # Require authentication
-    require_auth(request)
-
-    query = db.query(Game)
-
-    # Apply filters
-    if search:
-        query = query.filter(Game.title.ilike(f"%{search}%"))
-    if game_type:
-        query = query.filter(Game.game_type == game_type)
-    if complexity:
-        query = query.filter(Game.complexity == complexity)
-
-    # Apply sorting
-    if sort == "title":
-        query = query.order_by(Game.title)
-    elif sort == "rating":
-        # Note: This sorting won't work properly without the old rating field
-        # We'll need to implement a different approach for sorting by family ratings
-        query = query.order_by(Game.id.desc())
-    else:
-        query = query.order_by(Game.id.desc())
-
-    games = query.all()
-
-    # Get family members and their ratings for all games
-    family_members = db.query(FamilyMember).order_by(FamilyMember.name).all()
-    family_ratings = {}
-
-    for game in games:
-        family_ratings[game.id] = {
-            rating.family_member_id: rating.rating for rating in game.family_ratings
-        }
-
-    return templates.TemplateResponse(
-        request,
-        "games.html",
-        {
-            "games": games,
-            "msg": msg,
-            "family_members": family_members,
-            "family_ratings": family_ratings,
-        },
-    )
-
-
 @app.get("/games/new")
 async def new_game_form(request: Request, db: Session = Depends(get_db)):
     """Form to add a new game"""
