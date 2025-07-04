@@ -26,6 +26,7 @@ class TestAIFunctions:
             0
         ].message.content = """
         {
+            "title": "Catan",
             "player_count": "2-4 players",
             "game_type": "Strategy",
             "playtime": "30-60 minutes",
@@ -39,6 +40,7 @@ class TestAIFunctions:
         result = await get_game_metadata("Catan")
 
         # Verify the result
+        assert result["title"] == "Catan"
         assert result["player_count"] == "2-4 players"
         assert result["game_type"] == "Strategy"
         assert result["playtime"] == "30-60 minutes"
@@ -77,6 +79,7 @@ class TestAIFunctions:
         result = await get_game_metadata("Catan")
 
         # Should return fallback structure
+        assert "title" in result
         assert "player_count" in result
         assert "game_type" in result
         assert "playtime" in result

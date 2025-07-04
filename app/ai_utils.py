@@ -16,7 +16,7 @@ async def get_game_metadata(game_title: str) -> Dict[str, str]:
         game_title: The title of the board game
 
     Returns:
-        Dictionary containing game metadata
+        Dictionary containing game metadata including corrected title
     """
     if not os.getenv("OPENAI_API_KEY"):
         return {}
@@ -24,6 +24,7 @@ async def get_game_metadata(game_title: str) -> Dict[str, str]:
     try:
         prompt = f"""
         Provide metadata for the board game "{game_title}". Return the information in JSON format with these fields:
+        - title: the correct, official title of the game (correct any typos, capitalization, or formatting issues)
         - player_count: typical player count (e.g., "2-4 players")
         - game_type: category/genre (e.g., "Strategy", "Party", "Cooperative")
         - playtime: typical play time (e.g., "30-60 minutes")
@@ -55,6 +56,7 @@ async def get_game_metadata(game_title: str) -> Dict[str, str]:
         except json.JSONDecodeError:
             # Fallback: return basic structure
             return {
+                "title": "",
                 "player_count": "",
                 "game_type": "",
                 "playtime": "",
