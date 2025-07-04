@@ -435,14 +435,9 @@ async def update_game(
                 pass  # Skip invalid ratings
 
     db.commit()
-    # Validate game_id before redirection
-    valid_game = db.query(Game).filter(Game.id == game_id).first()
-    if valid_game:
-        return RedirectResponse(
-            url=f"/games/{valid_game.id}?msg=Game+updated+successfully", status_code=303
-        )
-    # Fallback to home page if game_id is invalid
-    return RedirectResponse(url="/?msg=Invalid+game+ID", status_code=303)
+    return RedirectResponse(
+        url=f"/games/{game_id}?msg=Game+updated+successfully", status_code=303
+    )
 
 
 @app.delete("/games/{game_id}")
@@ -453,18 +448,15 @@ async def delete_game(
     # Require authentication
     require_auth(request)
 
+    # Validate game_id exists before deletion (security fix)
     game = db.query(Game).filter(Game.id == game_id).first()
     if not game:
+        # If game doesn't exist, return 404 (original behavior)
         raise HTTPException(status_code=404, detail="Game not found")
 
     db.delete(game)
     db.commit()
-    # Validate game_id before redirection
-    valid_game = db.query(Game).filter(Game.id == game_id).first()
-    if valid_game:
-        return RedirectResponse(url="/?msg=Game+deleted+successfully", status_code=303)
-    # Fallback to home page if game_id is invalid
-    return RedirectResponse(url="/?msg=Invalid+game+ID", status_code=303)
+    return RedirectResponse(url="/?msg=Game+deleted+successfully", status_code=303)
 
 
 @app.post("/games/{game_id}/autofill")
@@ -488,9 +480,6 @@ async def autofill_game(
             setattr(game, key, value)
 
     db.commit()
-    db.refresh(game)
-    if not game:
-        return RedirectResponse(url="/?msg=Invalid+game+ID", status_code=303)
     return RedirectResponse(
         url=f"/games/{game_id}?msg=Game+metadata+updated+with+AI", status_code=303
     )
