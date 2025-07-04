@@ -124,6 +124,70 @@ async def index(
     )
 
 
+@app.get("/games")
+async def list_games(
+    request: Request,
+    search: Optional[str] = Query(None),
+    game_type: Optional[str] = Query(None),
+    complexity: Optional[str] = Query(None),
+    sort_by: Optional[str] = Query(None),
+    db: Session = Depends(get_db),
+):
+    """Games list page with filtering and sorting"""
+    # Require authentication
+    require_auth(request)
+
+    # Start with base query
+    query = db.query(Game)
+
+    # Apply search filter
+    if search:
+        query = query.filter(
+            Game.title.ilike(f"%{search}%") | Game.description.ilike(f"%{search}%")
+        )
+
+    # Apply game type filter
+    if game_type:
+        query = query.filter(Game.game_type == game_type)
+
+    # Apply complexity filter
+    if complexity:
+        query = query.filter(Game.complexity == complexity)
+
+    # Apply sorting
+    if sort_by:
+        if sort_by == "title":
+            query = query.order_by(Game.title)
+        elif sort_by == "created_at":
+            query = query.order_by(Game.created_at.desc())
+        elif sort_by == "updated_at":
+            query = query.order_by(Game.updated_at.desc())
+    else:
+        # Default sorting by title
+        query = query.order_by(Game.title)
+
+    games = query.all()
+
+    # Get family members and their ratings for all games
+    family_members = db.query(FamilyMember).order_by(FamilyMember.name).all()
+    family_ratings = {}
+
+    for game in games:
+        family_ratings[game.id] = {
+            rating.family_member_id: rating.rating for rating in game.family_ratings
+        }
+
+    return templates.TemplateResponse(
+        request,
+        "index.html",
+        {
+            "games": games,
+            "family_members": family_members,
+            "family_ratings": family_ratings,
+        },
+    )
+
+
 @app.get("/settings")
 async def settings_page(request: Request, db: Session = Depends(get_db)):
     """Settings page for managing family members"""
@@ -175,63 +239,6 @@ async def delete_family_member(
     db.commit()
     return RedirectResponse(
         url="/settings?msg=Family+member+deleted+successfully", status_code=303
-    )
-
-
-@app.get("/games")
-async def list_games(
-    request: Request,
-    search: Optional[str] = Query(None),
-    game_type: Optional[str] = Query(None),
-    complexity: Optional[str] = Query(None),
-    sort: Optional[str] = Query(None),
-    msg: Optional[str] = None,
-    db: Session = Depends(get_db),
-):
-    """List all games with optional filtering and sorting"""
-    # Require authentication
-    require_auth(request)
-
-    query = db.query(Game)
-
-    # Apply filters
-    if search:
-        query = query.filter(Game.title.ilike(f"%{search}%"))
-    if game_type:
-        query = query.filter(Game.game_type == game_type)
-    if complexity:
-        query = query.filter(Game.complexity == complexity)
-
-    # Apply sorting
-    if sort == "title":
-        query = query.order_by(Game.title)
-    elif sort == "rating":
-        # Note: This sorting won't work properly without the old rating field
-        # We'll need to implement a different approach for sorting by family ratings
-        query = query.order_by(Game.id.desc())
-    else:
-        query = query.order_by(Game.id.desc())
-
-    games = query.all()
-
-    # Get family members and their ratings for all games
-    family_members = db.query(FamilyMember).order_by(FamilyMember.name).all()
-    family_ratings = {}
-
-    for game in games:
-        family_ratings[game.id] = {
-            rating.family_member_id: rating.rating for rating in game.family_ratings
-        }
-
-    return templates.TemplateResponse(
-        request,
-        "games.html",
-        {
-            "games": games,
-            "msg": msg,
-            "family_members": family_members,
-            "family_ratings": family_ratings,
-        },
     )
 
 
