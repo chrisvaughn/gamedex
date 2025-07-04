@@ -131,6 +131,8 @@ async def list_games(
     game_type: Optional[str] = Query(None),
     complexity: Optional[str] = Query(None),
     sort_by: Optional[str] = Query(None),
+    game_elements: Optional[str] = Query(None),
+    setup_time: Optional[str] = Query(None),
     db: Session = Depends(get_db),
 ):
     """Games list page with filtering and sorting"""
@@ -146,9 +148,17 @@ async def list_games(
             Game.title.ilike(f"%{search}%") | Game.description.ilike(f"%{search}%")
         )
 
-    # Apply game type filter
+    # Apply game type filter (LIKE for comma-separated values)
     if game_type:
-        query = query.filter(Game.game_type == game_type)
+        query = query.filter(Game.game_type.ilike(f"%{game_type}%"))
+
+    # Apply game elements filter (LIKE for comma-separated values)
+    if game_elements:
+        query = query.filter(Game.game_elements.ilike(f"%{game_elements}%"))
+
+    # Apply setup time filter (exact match or LIKE)
+    if setup_time:
+        query = query.filter(Game.setup_time.ilike(f"%{setup_time}%"))
 
     # Apply complexity filter
     if complexity:
@@ -263,6 +273,8 @@ async def create_game(
     playtime: Optional[str] = Form(None),
     complexity: Optional[str] = Form(None),
     description: Optional[str] = Form(None),
+    setup_time: Optional[str] = Form(None),
+    game_elements: Optional[str] = Form(None),
     db: Session = Depends(get_db),
 ):
     """Create a new game"""
@@ -276,6 +288,8 @@ async def create_game(
         playtime=playtime or "",
         complexity=complexity or "",
         description=description or "",
+        setup_time=setup_time or "",
+        game_elements=game_elements or "",
     )
     db.add(game)
     db.commit()
@@ -322,6 +336,9 @@ async def autofill_game_by_title(
     # Update game with AI metadata
     for key, value in metadata.items():
         if hasattr(game, key) and value:
+            # Ensure game_type and game_elements are strings, not lists
+            if key in ["game_type", "game_elements"] and isinstance(value, list):
+                value = ", ".join(value)
             setattr(game, key, value)
 
     db.commit()
@@ -403,6 +420,8 @@ async def update_game(
     playtime: Optional[str] = Form(None),
     complexity: Optional[str] = Form(None),
     description: Optional[str] = Form(None),
+    setup_time: Optional[str] = Form(None),
+    game_elements: Optional[str] = Form(None),
     db: Session = Depends(get_db),
 ):
     """Update a game"""
@@ -419,6 +438,8 @@ async def update_game(
     game.playtime = playtime or ""
     game.complexity = complexity or ""
     game.description = description or ""
+    game.setup_time = setup_time or ""
+    game.game_elements = game_elements or ""
 
     # Handle family member ratings
     form_data = await request.form()
@@ -484,6 +505,9 @@ async def autofill_game(
     # Update game with AI metadata
     for key, value in metadata.items():
         if hasattr(game, key) and value:
+            # Ensure game_type and game_elements are strings, not lists
+            if key in ["game_type", "game_elements"] and isinstance(value, list):
+                value = ", ".join(value)
             setattr(game, key, value)
 
     db.commit()

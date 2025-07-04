@@ -37,26 +37,34 @@
                 placeholder="e.g., 2-4 players, 3-6 players">
         </div>
 
+        <!-- Setup Time -->
+        <div>
+            <label for="setup_time" class="block text-sm font-medium text-gray-700 mb-2">
+                Setup Time
+            </label>
+            <input type="text" id="setup_time" name="setup_time"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="e.g., 5-10 minutes">
+        </div>
+
+        <!-- Game Elements -->
+        <div>
+            <label for="game_elements" class="block text-sm font-medium text-gray-700 mb-2">
+                Game Elements (comma-separated)
+            </label>
+            <input type="text" id="game_elements" name="game_elements"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="e.g., Dice, Cards, Board, Tokens">
+        </div>
+
         <!-- Game Type -->
         <div>
             <label for="game_type" class="block text-sm font-medium text-gray-700 mb-2">
-                Game Type
+                Game Type(s) (comma-separated)
             </label>
-            <select id="game_type" name="game_type"
-                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                <option value="">Select a game type</option>
-                <option value="Strategy">Strategy</option>
-                <option value="Party">Party</option>
-                <option value="Cooperative">Cooperative</option>
-                <option value="Deck Building">Deck Building</option>
-                <option value="Worker Placement">Worker Placement</option>
-                <option value="Area Control">Area Control</option>
-                <option value="Deduction">Deduction</option>
-                <option value="Economic">Economic</option>
-                <option value="Adventure">Adventure</option>
-                <option value="Family">Family</option>
-                <option value="Other">Other</option>
-            </select>
+            <input type="text" id="game_type" name="game_type"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="e.g., Strategy, Deck Building, Dice Game">
         </div>
 
         <!-- Playtime -->
@@ -82,16 +90,6 @@
                 <option value="Hard">Hard</option>
                 <option value="Expert">Expert</option>
             </select>
-        </div>
-
-        <!-- Rating -->
-        <div>
-            <label for="rating" class="block text-sm font-medium text-gray-700 mb-2">
-                Your Rating (1-10)
-            </label>
-            <input type="number" id="rating" name="rating" min="1" max="10"
-                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                placeholder="Rate from 1 to 10">
         </div>
 
         <!-- Family Member Ratings -->

@@ -23,12 +23,14 @@ async def get_game_metadata(game_title: str) -> Dict[str, str]:
 
     try:
         prompt = f"""
-        Provide metadata for the board game "{game_title}". Return the information in JSON format with these fields:
+        Provide metadata for the board game \"{game_title}\". Return the information in JSON format with these fields:
         - title: the correct, official title of the game (correct any typos, capitalization, or formatting issues)
-        - player_count: typical player count (e.g., "2-4 players")
-        - game_type: category/genre (e.g., "Strategy", "Party", "Cooperative")
-        - playtime: typical play time (e.g., "30-60 minutes")
-        - complexity: complexity level (e.g., "Easy", "Medium", "Hard")
+        - player_count: typical player count (e.g., \"2-4 players\")
+        - game_type: category/genre as comma-separated string (e.g., \"Strategy, Deck Building\")
+        - playtime: typical play time (e.g., \"30-60 minutes\")
+        - complexity: complexity level (e.g., \"Easy\", \"Medium\", \"Hard\")
+        - setup_time: typical setup time (e.g., \"5-10 minutes\")
+        - game_elements: main elements used in the game as comma-separated string (e.g., \"Dice, Cards, Board, Tokens\")
         - description: brief description of the game
         
         If you don't know the game, return an empty JSON object {{}}.
@@ -52,6 +54,16 @@ async def get_game_metadata(game_title: str) -> Dict[str, str]:
         # Try to parse JSON response
         try:
             metadata = json.loads(content)
+
+            # Convert any list fields to comma-separated strings
+            if "game_type" in metadata and isinstance(metadata["game_type"], list):
+                metadata["game_type"] = ", ".join(metadata["game_type"])
+
+            if "game_elements" in metadata and isinstance(
+                metadata["game_elements"], list
+            ):
+                metadata["game_elements"] = ", ".join(metadata["game_elements"])
+
             return metadata
         except json.JSONDecodeError:
             # Fallback: return basic structure
@@ -61,6 +73,8 @@ async def get_game_metadata(game_title: str) -> Dict[str, str]:
                 "game_type": "",
                 "playtime": "",
                 "complexity": "",
+                "setup_time": "",
+                "game_elements": "",
                 "description": content,
             }
 
