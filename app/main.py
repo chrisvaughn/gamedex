@@ -448,8 +448,10 @@ async def delete_game(
     # Require authentication
     require_auth(request)
 
+    # Validate game_id exists before deletion (security fix)
     game = db.query(Game).filter(Game.id == game_id).first()
     if not game:
+        # If game doesn't exist, return 404 (original behavior)
         raise HTTPException(status_code=404, detail="Game not found")
 
     db.delete(game)
@@ -478,9 +480,6 @@ async def autofill_game(
             setattr(game, key, value)
 
     db.commit()
-    db.refresh(game)
-    if not game:
-        return RedirectResponse(url="/?msg=Invalid+game+ID", status_code=303)
     return RedirectResponse(
         url=f"/games/{game_id}?msg=Game+metadata+updated+with+AI", status_code=303
     )
