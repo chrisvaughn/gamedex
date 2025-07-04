@@ -17,7 +17,7 @@ class TestAPIEndpoints:
 
     def test_games_list_endpoint_empty(self, authenticated_client: TestClient):
         """Test games list endpoint with no games"""
-        response = authenticated_client.get("/games")
+        response = authenticated_client.get("/")
         assert response.status_code == 200
         assert "No games yet!" in response.text
 
@@ -31,7 +31,7 @@ class TestAPIEndpoints:
             assert response.status_code == 200
 
         # Test list endpoint
-        response = authenticated_client.get("/games")
+        response = authenticated_client.get("/")
         assert response.status_code == 200
         assert "Catan" in response.text
         assert "Ticket to Ride" in response.text
@@ -47,7 +47,7 @@ class TestAPIEndpoints:
         assert "Test Game" in response.text
 
         # Verify game was created in database
-        response = authenticated_client.get("/games")
+        response = authenticated_client.get("/")
         assert "Test Game" in response.text
 
     def test_create_game_endpoint_missing_title(self, authenticated_client: TestClient):
@@ -65,7 +65,7 @@ class TestAPIEndpoints:
         assert response.status_code == 200
 
         # Get the game ID from the response
-        response = authenticated_client.get("/games")
+        response = authenticated_client.get("/")
         assert "Test Game" in response.text
 
         # Find the game ID by looking for the detail link
@@ -98,7 +98,7 @@ class TestAPIEndpoints:
             assert "Game updated successfully" in response.text
 
             # Verify update in list
-            response = authenticated_client.get("/games")
+            response = authenticated_client.get("/")
             assert "Updated Test Game" in response.text
 
             # Verify update in details
@@ -120,7 +120,7 @@ class TestAPIEndpoints:
             assert "Game deleted successfully" in response.text
 
             # Verify the game is gone
-            response = authenticated_client.get("/games")
+            response = authenticated_client.get("/")
             assert "Test Game" not in response.text
 
             # Verify 404 for deleted game
