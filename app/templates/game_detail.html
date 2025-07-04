@@ -94,6 +94,36 @@
                     </div>
                     {% endif %}
 
+                    {% if game.setup_time %}
+                    <div class="flex items-center">
+                        <span class="w-8 h-8 mr-3 text-indigo-600">⏳</span>
+                        <div>
+                            <div class="font-medium text-gray-900">Setup Time</div>
+                            <div class="text-gray-600">{{ game.setup_time }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if game.game_elements %}
+                    <div class="flex items-center">
+                        <span class="w-8 h-8 mr-3 text-indigo-600">🎲</span>
+                        <div>
+                            <div class="font-medium text-gray-900">Game Elements</div>
+                            <div class="text-gray-600">{{ game.game_elements }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if game.game_type %}
+                    <div class="flex items-center">
+                        <span class="w-8 h-8 mr-3 text-indigo-600">🏷️</span>
+                        <div>
+                            <div class="font-medium text-gray-900">Game Type</div>
+                            <div class="text-gray-600">{{ game.game_type }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+
                     <!-- Family Member Ratings -->
                     {% if family_members %}
                     <div class="flex items-start">

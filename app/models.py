@@ -27,7 +27,13 @@ class Game(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True, index=True)
     title: str = Field(max_length=255, nullable=False, index=True)
     player_count: Optional[str] = Field(max_length=100, nullable=True)
-    game_type: Optional[str] = Field(max_length=100, nullable=True)
+    game_type: Optional[str] = Field(
+        max_length=500, nullable=True
+    )  # Comma-separated list for database storage
+    game_elements: Optional[str] = Field(
+        max_length=500, nullable=True
+    )  # Comma-separated list for database storage
+    setup_time: Optional[str] = Field(max_length=100, nullable=True)
     playtime: Optional[str] = Field(max_length=100, nullable=True)
     complexity: Optional[str] = Field(max_length=100, nullable=True)
     description: Optional[str] = Field(nullable=True)

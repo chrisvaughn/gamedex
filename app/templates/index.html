@@ -44,8 +44,18 @@
     </div>
     <div class="bg-white rounded-lg shadow p-6 text-center">
         <div class="text-3xl font-bold text-purple-600">
-            {% set game_types = games|map(attribute='game_type')|select('ne', None)|select('ne', '')|unique|list %}
-            {{ game_types|length }}
+            {% set all_game_types = [] %}
+            {% for game in games %}
+            {% if game.game_type %}
+            {% for game_type in game.game_type.split(',') %}
+            {% set game_type = game_type.strip() %}
+            {% if game_type and game_type not in all_game_types %}
+            {% set _ = all_game_types.append(game_type) %}
+            {% endif %}
+            {% endfor %}
+            {% endif %}
+            {% endfor %}
+            {{ all_game_types|length }}
         </div>
         <div class="text-gray-600">Game Types</div>
     </div>
@@ -86,8 +96,18 @@
             <select id="gameType"
                 class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                 <option value="">All Types</option>
-                {% set game_types = games|map(attribute='game_type')|select('ne', None)|select('ne', '')|unique|list %}
-                {% for game_type in game_types %}
+                {% set all_game_types = [] %}
+                {% for game in games %}
+                {% if game.game_type %}
+                {% for game_type in game.game_type.split(',') %}
+                {% set game_type = game_type.strip() %}
+                {% if game_type and game_type not in all_game_types %}
+                {% set _ = all_game_types.append(game_type) %}
+                {% endif %}
+                {% endfor %}
+                {% endif %}
+                {% endfor %}
+                {% for game_type in all_game_types|sort %}
                 <option value="{{ game_type }}">{{ game_type }}</option>
                 {% endfor %}
             </select>
@@ -282,11 +302,16 @@
 
             gameCards.forEach(card => {
                 const title = card.querySelector('h4').textContent.toLowerCase();
-                const gameType = card.querySelector('[data-game-type]')?.textContent.toLowerCase() || '';
+                const gameTypeElement = card.querySelector('[data-game-type]');
+                const gameType = gameTypeElement ? gameTypeElement.textContent.toLowerCase() : '';
                 const complexity = card.querySelector('[data-complexity]')?.textContent.toLowerCase() || '';
 
                 const matchesSearch = title.includes(searchTerm);
-                const matchesGameType = !selectedGameType || gameType.includes(selectedGameType);
+
+                // Check if selected game type is contained within the game's game type (comma-separated)
+                const matchesGameType = !selectedGameType ||
+                    (gameType && gameType.includes(selectedGameType));
+
                 const matchesComplexity = !selectedComplexity || complexity.includes(selectedComplexity);
 
                 if (matchesSearch && matchesGameType && matchesComplexity) {
