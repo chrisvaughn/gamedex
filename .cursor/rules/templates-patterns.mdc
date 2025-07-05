@@ -1,0 +1,100 @@
+# GameDex Template Patterns
+
+## Base Template Structure
+
+All templates extend [app/templates/base.html](mdc:app/templates/base.html) which provides:
+
+- Common HTML structure with Tailwind CSS
+- Navigation header
+- Authentication status
+- Common JavaScript functions
+
+## Template Hierarchy
+
+```
+base.html
+├── index.html (home page)
+├── game_detail.html (individual game)
+├── new_game.html (add game form)
+├── edit_game.html (edit game form)
+├── login.html (authentication)
+├── settings.html (family management)
+├── recommend.html (AI recommendations)
+└── recommendations.html (results page)
+```
+
+## Common Jinja2 Patterns
+
+### Game Type Filtering
+
+```jinja2
+{% set all_game_types = [] %}
+{% for game in games %}
+    {% if game.game_type %}
+        {% for game_type in game.game_type.split(',') %}
+            {% set game_type = game_type.strip() %}
+            {% if game_type and game_type not in all_game_types %}
+                {% set _ = all_game_types.append(game_type) %}
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+{% endfor %}
+```
+
+### Family Ratings Display
+
+```jinja2
+{% if family_ratings.get(game.id) %}
+    {% for member_id, rating in family_ratings.get(game.id).items() %}
+        <!-- Rating display logic -->
+    {% endfor %}
+{% endif %}
+```
+
+### Conditional Field Display
+
+```jinja2
+{% if game.field_name %}
+<div class="flex items-center">
+    <span class="w-8 h-8 mr-3 text-indigo-600">🎯</span>
+    <div>
+        <div class="font-medium text-gray-900">Field Label</div>
+        <div class="text-gray-600">{{ game.field_name }}</div>
+    </div>
+</div>
+{% endif %}
+```
+
+## Form Patterns
+
+### Game Creation/Edit Forms
+
+- Use `method="POST"` with appropriate action URLs
+- Include all game fields: title, player_count, game_type, game_elements, setup_time, etc.
+- Handle family member ratings with `rating_{member_id}` pattern
+- Include autofill buttons for AI integration
+
+### Authentication Forms
+
+- Simple password-based authentication
+- Session cookie management
+- Redirect patterns for success/failure
+
+## JavaScript Integration
+
+- Client-side filtering for game lists
+- Autofill functionality for AI integration
+- Form validation and submission
+- Dynamic UI updates
+
+## Styling Patterns
+
+- Tailwind CSS classes throughout
+- Responsive design with grid layouts
+- Consistent color scheme (indigo/purple theme)
+- Icon usage with emoji and consistent sizing
+description:
+globs:
+alwaysApply: false
+
+---

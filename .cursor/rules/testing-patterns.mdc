@@ -1,0 +1,124 @@
+# GameDex Testing Patterns
+
+## Test Structure
+
+All tests are located in the [tests/](mdc:tests/) directory with comprehensive coverage.
+
+## Test Files Organization
+
+- [tests/test_api.py](mdc:tests/test_api.py) - API endpoint testing
+- [tests/test_models.py](mdc:tests/test_models.py) - Data model testing
+- [tests/test_auth.py](mdc:tests/test_auth.py) - Authentication testing
+- [tests/test_database.py](mdc:tests/test_database.py) - Database operations testing
+- [tests/test_ai_utils.py](mdc:tests/test_ai_utils.py) - AI integration testing
+- [tests/test_integration.py](mdc:tests/test_integration.py) - End-to-end testing
+- [tests/test_main.py](mdc:tests/test_main.py) - Main application testing
+- [tests/conftest.py](mdc:tests/conftest.py) - Pytest fixtures and configuration
+
+## Test Categories
+
+### Unit Tests
+
+- Individual function testing
+- Model validation
+- Utility function testing
+- Error handling scenarios
+
+### Integration Tests
+
+- API endpoint testing with authentication
+- Database operations with real data
+- Template rendering with context
+- AI integration testing
+
+### End-to-End Tests
+
+- Complete user workflows
+- Authentication flows
+- Game lifecycle management
+- Error scenarios
+
+## Testing Patterns
+
+### API Testing
+
+```python
+def test_create_game_success(self, authenticated_client: TestClient):
+    """Test successful game creation"""
+    response = authenticated_client.post("/games", data={
+        "title": "Test Game",
+        "player_count": "2-4",
+        "game_type": "Strategy"
+    })
+    assert response.status_code == 200
+```
+
+### Model Testing
+
+```python
+def test_create_game_with_all_fields(self, db_session):
+    """Test game creation with all fields"""
+    game = Game(
+        title="Test Game",
+        game_type="Strategy, Resource Management",
+        game_elements="Cards, Dice"
+    )
+    db_session.add(game)
+    db_session.commit()
+    assert game.id is not None
+```
+
+### Authentication Testing
+
+```python
+def test_require_auth_without_user(self, client: TestClient):
+    """Test authentication requirement"""
+    response = client.get("/")
+    assert response.status_code == 303  # Redirect to login
+```
+
+## Test Fixtures
+
+- `authenticated_client` - Client with valid session
+- `db_session` - Database session for testing
+- `sample_games_data` - Sample game data for testing
+- `sample_family_members` - Sample family member data
+
+## Running Tests
+
+```bash
+# Run all tests
+python -m pytest tests/ -v
+
+# Run specific test file
+python -m pytest tests/test_api.py -v
+
+# Run specific test
+python -m pytest tests/test_api.py::TestAPIEndpoints::test_create_game_success -v
+
+# Run with coverage
+python -m pytest tests/ --cov=app --cov-report=html
+```
+
+## Test Data Patterns
+
+- Use realistic but minimal test data
+- Test both success and failure scenarios
+- Include edge cases and boundary conditions
+- Test authentication and authorization
+- Verify error handling and validation
+
+## Best Practices
+
+1. **Test all endpoints** with and without authentication
+2. **Test data validation** and error scenarios
+3. **Use descriptive test names** that explain the scenario
+4. **Test both positive and negative cases**
+5. **Mock external dependencies** (like AI APIs)
+6. **Maintain test data consistency**
+7. **Test database migrations** when schema changes
+description:
+globs:
+alwaysApply: false
+
+---

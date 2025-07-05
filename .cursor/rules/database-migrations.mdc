@@ -1,0 +1,92 @@
+# GameDex Database Migrations
+
+## Migration System
+
+GameDex uses Alembic for database migrations with SQLite as the primary database.
+
+## Migration Files Location
+
+- [migrations/](mdc:migrations/) - All migration files
+- [migrations/versions/](mdc:migrations/versions/) - Individual migration scripts
+- [alembic.ini](mdc:alembic.ini) - Alembic configuration
+
+## Migration Commands
+
+```bash
+# Create new migration
+alembic revision --autogenerate -m "Description of changes"
+
+# Apply migrations
+alembic upgrade head
+
+# Rollback migration
+alembic downgrade -1
+
+# Check current status
+alembic current
+```
+
+## Migration Patterns
+
+### Adding New Fields
+
+```python
+def upgrade() -> None:
+    # Add new columns
+    op.add_column('games', sa.Column('new_field', sa.VARCHAR(length=100), nullable=True))
+
+def downgrade() -> None:
+    # Remove new columns
+    op.drop_column('games', 'new_field')
+```
+
+### Modifying Existing Fields
+
+```python
+def upgrade() -> None:
+    # SQLite doesn't support ALTER COLUMN for type changes
+    # Use workarounds or recreate tables if necessary
+    
+def downgrade() -> None:
+    # Revert changes
+```
+
+## SQLite Limitations
+
+- No `ALTER COLUMN` for type changes
+- Limited schema modification capabilities
+- Use workarounds for complex schema changes
+
+## Best Practices
+
+1. **Always test migrations** on development database first
+2. **Backup data** before applying migrations in production
+3. **Use descriptive migration names** that explain the changes
+4. **Include both upgrade and downgrade** functions
+5. **Handle SQLite limitations** gracefully
+6. **Test rollback scenarios** to ensure data integrity
+
+## Current Migration History
+
+- `347f15356ac2_initial.py` - Initial database schema
+- `b9e69a1c3e35_add_setup_time_and_game_elements_fields.py` - Added new game fields
+
+## Model Changes
+
+When modifying models in [app/models.py](mdc:app/models.py):
+
+1. Update the model definition
+2. Generate migration: `alembic revision --autogenerate -m "Description"`
+3. Review the generated migration
+4. Apply migration: `alembic upgrade head`
+5. Test the changes thoroughly
+
+## Environment Variables
+
+- `DATABASE_URL` - Database connection string
+- Default: `sqlite:///./gamedex.db` for development
+description:
+globs:
+alwaysApply: false
+
+---

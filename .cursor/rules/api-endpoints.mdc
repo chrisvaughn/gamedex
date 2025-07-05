@@ -1,0 +1,63 @@
+# GameDex API Endpoints
+
+## Authentication Endpoints
+
+- `GET /login` - Login page
+- `POST /login` - Handle authentication (password-based)
+- `GET /logout` - Clear session and redirect to login
+
+## Game Management Endpoints
+
+- `GET /` - Home page with game list (requires auth)
+- `GET /games` - Games list with filtering/sorting (requires auth)
+- `GET /games/new` - New game form (requires auth)
+- `POST /games` - Create new game (requires auth)
+- `GET /games/{game_id}` - Game details (requires auth)
+- `GET /games/{game_id}/edit` - Edit game form (requires auth)
+- `POST /games/{game_id}` - Update game (requires auth)
+- `DELETE /games/{game_id}` - Delete game (requires auth)
+
+## AI Integration Endpoints
+
+- `POST /games/autofill` - Create game with AI autofill (requires auth)
+- `POST /games/{game_id}/autofill` - Autofill existing game (requires auth)
+- `GET /recommend` - AI recommendations page (requires auth)
+- `POST /recommend` - Get AI recommendations (requires auth)
+
+## Settings Endpoints
+
+- `GET /settings` - Settings page (requires auth)
+- `POST /settings/family-members` - Add family member (requires auth)
+- `DELETE /settings/family-members/{member_id}` - Delete family member (requires auth)
+
+## Utility Endpoints
+
+- `GET /healthz` - Health check (no auth required)
+- `HEAD /healthz` - Health check (no auth required)
+
+## Query Parameters for Filtering
+
+- `search` - Text search in title and description
+- `game_type` - Filter by game type (LIKE query for comma-separated values)
+- `game_elements` - Filter by game elements (LIKE query)
+- `setup_time` - Filter by setup time (LIKE query)
+- `complexity` - Filter by complexity (exact match)
+- `sort_by` - Sort by title, created_at, or updated_at
+
+## Form Data Patterns
+
+Game creation/update forms accept:
+
+- `title` (required)
+- `player_count`, `game_type`, `playtime`, `complexity`, `description`
+- `setup_time`, `game_elements` (new fields)
+- `rating_{member_id}` - Family member ratings
+
+## Authentication Pattern
+
+All endpoints except health check require authentication via session cookie.
+Use `require_auth(request)` decorator pattern in [app/auth.py](mdc:app/auth.py).
+description:
+globs:
+alwaysApply: false
+---

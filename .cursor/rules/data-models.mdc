@@ -1,0 +1,71 @@
+# GameDex Data Models
+
+## Core Models
+
+### Game Model
+
+The main entity representing a board game in the collection:
+
+```python
+class Game(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True, index=True)
+    title: str = Field(max_length=255, nullable=False, index=True)
+    player_count: Optional[str] = Field(max_length=100, nullable=True)
+    game_type: Optional[str] = Field(max_length=500, nullable=True)  # Comma-separated list
+    game_elements: Optional[str] = Field(max_length=500, nullable=True)  # Comma-separated list
+    setup_time: Optional[str] = Field(max_length=100, nullable=True)
+    playtime: Optional[str] = Field(max_length=100, nullable=True)
+    complexity: Optional[str] = Field(max_length=100, nullable=True)
+    description: Optional[str] = Field(nullable=True)
+    created_at: Optional[datetime] = Field(default=None, nullable=True)
+    updated_at: Optional[datetime] = Field(default=None, nullable=True)
+```
+
+**Key Features:**
+
+- `game_type` and `game_elements` store comma-separated values (e.g., "Strategy, Resource Management")
+- Automatic timestamp management via database event listeners
+- One-to-many relationship with GameRating
+
+### FamilyMember Model
+
+Represents family members who can rate games:
+
+```python
+class FamilyMember(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True, index=True)
+    name: str = Field(max_length=100, nullable=False, unique=True)
+    created_at: Optional[datetime] = Field(default=None, nullable=True)
+```
+
+### GameRating Model
+
+Junction table connecting games and family members with ratings:
+
+```python
+class GameRating(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True, index=True)
+    game_id: int = Field(foreign_key="games.id", nullable=False)
+    family_member_id: int = Field(foreign_key="family_members.id", nullable=False)
+    rating: int = Field(nullable=False)  # 1-10 rating
+    created_at: Optional[datetime] = Field(default=None, nullable=True)
+    updated_at: Optional[datetime] = Field(default=None, nullable=True)
+```
+
+## Relationships
+
+- Game ↔ GameRating: One-to-many (cascade delete)
+- FamilyMember ↔ GameRating: One-to-many (cascade delete)
+- Game ↔ FamilyMember: Many-to-many through GameRating
+
+## Important Notes
+
+- Game types and elements are stored as comma-separated strings, not lists
+- Always ensure game_type and game_elements are strings when saving to database
+- Use LIKE queries for filtering comma-separated values
+- Timestamps are automatically managed by database event listeners
+description:
+globs:
+alwaysApply: false
+
+---

@@ -1,0 +1,88 @@
+# GameDex AI Integration
+
+## AI Utilities Overview
+
+The AI integration is handled in [app/ai_utils.py](mdc:app/ai_utils.py) using OpenAI's GPT models.
+
+## Core Functions
+
+### get_game_metadata(game_title: str)
+
+Fetches comprehensive metadata for a board game based on its title.
+
+**Returns:**
+
+```python
+{
+    "title": "Corrected game title",
+    "player_count": "2-4 players",
+    "game_type": "Strategy, Resource Management",  # Comma-separated string
+    "playtime": "30-60 minutes",
+    "complexity": "Medium",
+    "setup_time": "5-10 minutes",
+    "game_elements": "Cards, Dice, Board, Tokens",  # Comma-separated string
+    "description": "Brief game description"
+}
+```
+
+**Important Notes:**
+
+- Always returns strings, never lists
+- Converts any list responses to comma-separated strings
+- Handles JSON parsing errors gracefully
+- Returns empty dict if game not found
+
+### get_game_recommendations(query: str, available_games: List[Dict], max_recommendations: int = 5)
+
+Provides AI-powered game recommendations based on natural language queries.
+
+**Input:**
+
+- `query`: Natural language request (e.g., "We have 4 players and want something quick")
+- `available_games`: List of games in the collection
+- `max_recommendations`: Maximum number of recommendations
+
+**Returns:**
+
+```python
+[
+    {
+        "title": "Game Title",
+        "reasoning": "Why this game matches the query"
+    }
+]
+```
+
+## Integration Points
+
+### Autofill Endpoints
+
+- `POST /games/autofill` - Creates new game with AI metadata
+- `POST /games/{game_id}/autofill` - Updates existing game with AI metadata
+
+### Safety Measures
+
+- List-to-string conversion for game_type and game_elements
+- Error handling for API failures
+- Graceful degradation when OpenAI key is missing
+- Input validation and sanitization
+
+## Configuration
+
+- Requires `OPENAI_API_KEY` environment variable
+- Uses GPT-3.5-turbo model
+- Configurable temperature and max tokens
+- Production/development environment detection
+
+## Error Handling
+
+- API key validation
+- Network error handling
+- JSON parsing error recovery
+- Rate limiting considerations
+- Fallback to manual entry when AI fails
+description:
+globs:
+alwaysApply: false
+
+---
