@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Play Session - {{ play_log.game.title }} - GameDex{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow-md p-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Edit Play Session</h1>
+        <p class="text-gray-600">Edit play session for <strong>{{ play_log.game.title }}</strong></p>
+    </div>
+
+    <form method="POST" action="/play-logs/{{ play_log.id }}" class="space-y-6">
+        <!-- Play Date -->
+        <div>
+            <label for="played_date" class="block text-sm font-medium text-gray-700 mb-2">
+                Date Played *
+            </label>
+            <input type="datetime-local" id="played_date" name="played_date" required
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                value="{{ default_date }}">
+        </div>
+
+        <!-- Players -->
+        <div>
+            <label for="players" class="block text-sm font-medium text-gray-700 mb-2">
+                Players (comma-separated)
+            </label>
+            <input type="text" id="players" name="players"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="e.g., John, Jane, Bob" value="{{ play_log.players or '' }}">
+        </div>
+
+        <!-- Duration -->
+        <div>
+            <label for="duration_minutes" class="block text-sm font-medium text-gray-700 mb-2">
+                Duration (minutes) *
+            </label>
+            <input type="number" id="duration_minutes" name="duration_minutes" min="1" required
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="e.g., 90" value="{{ play_log.duration_minutes or '' }}">
+        </div>
+
+        <!-- Winner -->
+        <div>
+            <label for="winner" class="block text-sm font-medium text-gray-700 mb-2">
+                Winner (if applicable)
+            </label>
+            <input type="text" id="winner" name="winner"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="e.g., John" value="{{ play_log.winner or '' }}">
+        </div>
+
+        <!-- Notes -->
+        <div>
+            <label for="notes" class="block text-sm font-medium text-gray-700 mb-2">
+                Notes
+            </label>
+            <textarea id="notes" name="notes" rows="4"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="Any notes about this play session...">{{ play_log.notes or '' }}</textarea>
+        </div>
+
+        <!-- Family Ratings -->
+        {% if family_members %}
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+                Update Family Ratings (optional)
+            </label>
+            <p class="text-sm text-gray-500 mb-4">Update your family's ratings for this game based on this play session
+            </p>
+            <div class="space-y-4">
+                {% for member in family_members %}
+                <div class="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                    <label class="text-sm text-gray-600 sm:min-w-[120px]">
+                        {{ member.name }}:
+                    </label>
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-2">
+                            <div class="flex text-yellow-400" id="stars_{{ member.id }}">
+                                {% for i in range(1, 11) %}
+                                <button type="button" class="star-btn text-2xl hover:text-yellow-500 transition-colors"
+                                    data-rating="{{ i }}" data-member="{{ member.id }}"
+                                    onclick="setRating({{ member.id }}, {{ i }})">
+                                    {% if i <= (family_ratings.get(member.id, 0)) %} ★ {% else %} ☆ {% endif %}
+                                        </button>
+                                        {% endfor %}
+                            </div>
+                            <input type="hidden" id="rating_{{ member.id }}" name="rating_{{ member.id }}"
+                                value="{{ family_ratings.get(member.id, '') }}">
+                            <span class="text-sm text-gray-500" id="rating_text_{{ member.id }}">
+                                {% if family_ratings.get(member.id) %}
+                                {{ family_ratings.get(member.id) }}/10
+                                {% else %}
+                                Click stars to rate
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Submit Buttons -->
+        <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 pt-6">
+            <button type="submit"
+                class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-6 rounded-lg font-medium transition-colors">
+                💾 Save Changes
+            </button>
+            <a href="/play-logs"
+                class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-3 px-6 rounded-lg font-medium text-center transition-colors">
+                Cancel
+            </a>
+        </div>
+    </form>
+
+    <!-- Delete Button -->
+    <div class="mt-8 pt-6 border-t border-gray-200">
+        <form method="POST" action="/play-logs/{{ play_log.id }}/delete"
+            onsubmit="return confirm('Are you sure you want to delete this play session? This action cannot be undone.')">
+            <button type="submit"
+                class="w-full bg-red-600 hover:bg-red-700 text-white py-3 px-6 rounded-lg font-medium transition-colors">
+                🗑️ Delete Play Session
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function setRating(memberId, rating) {
+        // Update the hidden input
+        document.getElementById('rating_' + memberId).value = rating;
+
+        // Update the text display
+        document.getElementById('rating_text_' + memberId).textContent = rating + '/10';
+
+        // Update the stars
+        const starsContainer = document.getElementById('stars_' + memberId);
+        const stars = starsContainer.querySelectorAll('.star-btn');
+
+        stars.forEach((star, index) => {
+            const starRating = index + 1;
+            if (starRating <= rating) {
+                star.textContent = '★';
+            } else {
+                star.textContent = '☆';
+            }
+        });
+    }
+</script>
+{% endblock %}

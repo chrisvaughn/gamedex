@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Log Play Session - {{ game.title }} - GameDex{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow-md p-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Log Play Session</h1>
+        <p class="text-gray-600">Record a play session for <strong>{{ game.title }}</strong></p>
+    </div>
+
+    <form method="POST" action="/games/{{ game.id }}/log-play" class="space-y-6">
+        <!-- Play Date -->
+        <div>
+            <label for="played_date" class="block text-sm font-medium text-gray-700 mb-2">
+                Date Played *
+            </label>
+            <input type="datetime-local" id="played_date" name="played_date" required
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                value="{{ default_date }}">
+        </div>
+
+        <!-- Players -->
+        <div>
+            <label for="players" class="block text-sm font-medium text-gray-700 mb-2">
+                Players (comma-separated)
+            </label>
+            <input type="text" id="players" name="players"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="e.g., John, Jane, Bob">
+        </div>
+
+        <!-- Duration -->
+        <div>
+            <label for="duration_minutes" class="block text-sm font-medium text-gray-700 mb-2">
+                Duration (minutes) *
+            </label>
+            <input type="number" id="duration_minutes" name="duration_minutes" min="1" required
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="e.g., 90">
+        </div>
+
+        <!-- Winner -->
+        <div>
+            <label for="winner" class="block text-sm font-medium text-gray-700 mb-2">
+                Winner (if applicable)
+            </label>
+            <input type="text" id="winner" name="winner"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="e.g., John">
+        </div>
+
+        <!-- Notes -->
+        <div>
+            <label for="notes" class="block text-sm font-medium text-gray-700 mb-2">
+                Notes
+            </label>
+            <textarea id="notes" name="notes" rows="4"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="Any notes about this play session..."></textarea>
+        </div>
+
+        <!-- Family Ratings -->
+        {% if family_members %}
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+                Update Family Ratings (optional)
+            </label>
+            <p class="text-sm text-gray-500 mb-4">Update your family's ratings for this game based on this play session
+            </p>
+            <div class="space-y-4">
+                {% for member in family_members %}
+                <div class="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                    <label class="text-sm text-gray-600 sm:min-w-[120px]">
+                        {{ member.name }}:
+                    </label>
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-2">
+                            <div class="flex text-yellow-400" id="stars_{{ member.id }}">
+                                {% for i in range(1, 11) %}
+                                <button type="button" class="star-btn text-2xl hover:text-yellow-500 transition-colors"
+                                    data-rating="{{ i }}" data-member="{{ member.id }}"
+                                    onclick="setRating({{ member.id }}, {{ i }})">
+                                    {% if i <= (family_ratings.get(member.id, 0)) %} ★ {% else %} ☆ {% endif %}
+                                        </button>
+                                        {% endfor %}
+                            </div>
+                            <input type="hidden" id="rating_{{ member.id }}" name="rating_{{ member.id }}"
+                                value="{{ family_ratings.get(member.id, '') }}">
+                            <span class="text-sm text-gray-500" id="rating_text_{{ member.id }}">
+                                {% if family_ratings.get(member.id) %}
+                                {{ family_ratings.get(member.id) }}/10
+                                {% else %}
+                                Click stars to rate
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Submit Buttons -->
+        <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 pt-6">
+            <button type="submit"
+                class="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 px-6 rounded-lg font-medium transition-colors">
+                📝 Log Play Session
+            </button>
+            <a href="/games/{{ game.id }}"
+                class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-3 px-6 rounded-lg font-medium text-center transition-colors">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+    function setRating(memberId, rating) {
+        // Update the hidden input
+        document.getElementById('rating_' + memberId).value = rating;
+
+        // Update the text display
+        document.getElementById('rating_text_' + memberId).textContent = rating + '/10';
+
+        // Update the stars
+        const starsContainer = document.getElementById('stars_' + memberId);
+        const stars = starsContainer.querySelectorAll('.star-btn');
+
+        stars.forEach((star, index) => {
+            const starRating = index + 1;
+            if (starRating <= rating) {
+                star.textContent = '★';
+            } else {
+                star.textContent = '☆';
+            }
+        });
+    }
+</script>
+{% endblock %}

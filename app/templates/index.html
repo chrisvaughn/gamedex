@@ -181,6 +181,13 @@
                         {{ game.complexity }}
                     </div>
                     {% endif %}
+
+                    {% if game.last_played %}
+                    <div class="flex items-center">
+                        <span class="w-4 h-4 mr-2">📅</span>
+                        Last played: {{ game.last_played.strftime('%b %d, %Y') }}
+                    </div>
+                    {% endif %}
                 </div>
 
                 {% if family_ratings.get(game.id) %}

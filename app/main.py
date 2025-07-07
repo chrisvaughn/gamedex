@@ -7,12 +7,12 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import text
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from .ai_utils import get_game_metadata, get_game_recommendations
 from .auth import check_family_password, create_session_token, require_auth
 from .database import engine, get_db
-from .models import FamilyMember, Game, GameRating
+from .models import FamilyMember, Game, GameRating, PlayLog
 
 app = FastAPI(title="GameDex", description="Board Game Collection Manager")
 
@@ -101,7 +101,8 @@ async def index(
     # Require authentication
     require_auth(request)
 
-    games = db.query(Game).all()
+    # Load games with their play logs for the last_played property
+    games = db.query(Game).options(selectinload(Game.play_logs)).all()
 
     # Get family members and their ratings for all games
     family_members = db.query(FamilyMember).order_by(FamilyMember.name).all()
@@ -139,8 +140,8 @@ async def list_games(
     # Require authentication
     require_auth(request)
 
-    # Start with base query
-    query = db.query(Game)
+    # Start with base query and load play logs for last_played property
+    query = db.query(Game).options(selectinload(Game.play_logs))
 
     # Apply search filter
     if search:
@@ -367,6 +368,14 @@ async def get_game(
         rating.family_member_id: rating.rating for rating in game.family_ratings
     }
 
+    # Get play logs for this game, ordered by most recent first
+    play_logs = (
+        db.query(PlayLog)
+        .filter(PlayLog.game_id == game_id)
+        .order_by(PlayLog.played_date.desc())
+        .all()
+    )
+
     return templates.TemplateResponse(
         request,
         "game_detail.html",
@@ -375,6 +384,7 @@ async def get_game(
             "msg": msg,
             "family_members": family_members,
             "family_ratings": family_ratings,
+            "play_logs": play_logs,
         },
     )
 
@@ -585,6 +595,303 @@ async def get_recommendations(
             "family_ratings": family_ratings,
             "total_games": len(games),
         },
+    )
+
+
+# Play Log Routes
+@app.get("/play-logs")
+async def list_play_logs(
+    request: Request,
+    page: int = Query(1, ge=1),
+    db: Session = Depends(get_db),
+):
+    """List all play logs with pagination"""
+    # Require authentication
+    require_auth(request)
+
+    # Pagination
+    per_page = 20
+    offset = (page - 1) * per_page
+
+    # Get play logs with game information, ordered by most recent first
+    play_logs = (
+        db.query(PlayLog)
+        .join(Game)
+        .order_by(PlayLog.played_date.desc())
+        .offset(offset)
+        .limit(per_page)
+        .all()
+    )
+
+    # Get total count for pagination
+    total_count = db.query(PlayLog).count()
+    total_pages = (total_count + per_page - 1) // per_page
+
+    return templates.TemplateResponse(
+        request,
+        "play_logs.html",
+        {
+            "play_logs": play_logs,
+            "page": page,
+            "total_pages": total_pages,
+        },
+    )
+
+
+@app.get("/games/{game_id}/log-play")
+async def log_play_form(
+    request: Request,
+    game_id: int = Path(..., gt=0),
+    db: Session = Depends(get_db),
+):
+    """Form to log a play session for a specific game"""
+    # Require authentication
+    require_auth(request)
+
+    game = db.query(Game).filter(Game.id == game_id).first()
+    if not game:
+        raise HTTPException(status_code=404, detail="Game not found")
+
+    # Get family members and their current ratings for this game
+    family_members = db.query(FamilyMember).order_by(FamilyMember.name).all()
+    family_ratings = {
+        rating.family_member_id: rating.rating for rating in game.family_ratings
+    }
+
+    # Default date to current time
+    from datetime import UTC, datetime
+
+    default_date = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M")
+
+    return templates.TemplateResponse(
+        request,
+        "log_play.html",
+        {
+            "game": game,
+            "family_members": family_members,
+            "family_ratings": family_ratings,
+            "default_date": default_date,
+        },
+    )
+
+
+@app.post("/games/{game_id}/log-play")
+async def log_play_session(
+    request: Request,
+    game_id: int = Path(..., gt=0),
+    played_date: str = Form(...),
+    players: Optional[str] = Form(None),
+    duration_minutes: int = Form(...),
+    winner: Optional[str] = Form(None),
+    notes: Optional[str] = Form(None),
+    db: Session = Depends(get_db),
+):
+    """Create a new play log entry"""
+    # Require authentication
+    require_auth(request)
+
+    game = db.query(Game).filter(Game.id == game_id).first()
+    if not game:
+        raise HTTPException(status_code=404, detail="Game not found")
+
+    # Parse the played_date
+    from datetime import datetime
+
+    try:
+        parsed_date = datetime.fromisoformat(played_date.replace("Z", "+00:00"))
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format")
+
+    # Create play log
+    play_log = PlayLog(
+        game_id=game_id,
+        played_date=parsed_date,
+        players=players,
+        duration_minutes=duration_minutes,
+        winner=winner,
+        notes=notes,
+    )
+    db.add(play_log)
+    db.commit()
+    db.refresh(play_log)
+
+    # Handle family ratings
+    form_data = await request.form()
+    family_members = db.query(FamilyMember).all()
+
+    for member in family_members:
+        rating_key = f"rating_{member.id}"
+        if rating_key in form_data and form_data[rating_key]:
+            try:
+                rating_value = int(form_data[rating_key])
+                if 1 <= rating_value <= 10:
+                    # Check if rating already exists
+                    existing_rating = (
+                        db.query(GameRating)
+                        .filter(
+                            GameRating.game_id == game_id,
+                            GameRating.family_member_id == member.id,
+                        )
+                        .first()
+                    )
+
+                    if existing_rating:
+                        # Update existing rating
+                        existing_rating.rating = rating_value
+                    else:
+                        # Create new rating
+                        game_rating = GameRating(
+                            game_id=game_id,
+                            family_member_id=member.id,
+                            rating=rating_value,
+                        )
+                        db.add(game_rating)
+            except ValueError:
+                pass  # Skip invalid ratings
+
+    db.commit()
+
+    # Validate that game_id corresponds to an existing game
+    game = db.query(Game).filter(Game.id == game_id).first()
+    if not game:
+        # Redirect to the home page if game_id is invalid
+        return RedirectResponse(url="/?msg=Invalid+game+ID", status_code=303)
+
+    return RedirectResponse(
+        url=f"/games/{game_id}?msg=Play+session+logged+successfully", status_code=303
+    )
+
+
+@app.get("/play-logs/{play_log_id}/edit")
+async def edit_play_log_form(
+    request: Request,
+    play_log_id: int = Path(..., gt=0),
+    db: Session = Depends(get_db),
+):
+    """Form to edit a play log entry"""
+    # Require authentication
+    require_auth(request)
+
+    play_log = db.query(PlayLog).filter(PlayLog.id == play_log_id).first()
+    if not play_log:
+        raise HTTPException(status_code=404, detail="Play log not found")
+
+    # Get family members and their current ratings for this game
+    family_members = db.query(FamilyMember).order_by(FamilyMember.name).all()
+    family_ratings = {
+        rating.family_member_id: rating.rating
+        for rating in play_log.game.family_ratings
+    }
+
+    # Format date for datetime-local input
+    default_date = play_log.played_date.strftime("%Y-%m-%dT%H:%M")
+
+    return templates.TemplateResponse(
+        request,
+        "edit_play_log.html",
+        {
+            "play_log": play_log,
+            "family_members": family_members,
+            "family_ratings": family_ratings,
+            "default_date": default_date,
+        },
+    )
+
+
+@app.post("/play-logs/{play_log_id}")
+async def update_play_log(
+    request: Request,
+    play_log_id: int = Path(..., gt=0),
+    played_date: str = Form(...),
+    players: Optional[str] = Form(None),
+    duration_minutes: int = Form(...),
+    winner: Optional[str] = Form(None),
+    notes: Optional[str] = Form(None),
+    db: Session = Depends(get_db),
+):
+    """Update a play log entry"""
+    # Require authentication
+    require_auth(request)
+
+    play_log = db.query(PlayLog).filter(PlayLog.id == play_log_id).first()
+    if not play_log:
+        raise HTTPException(status_code=404, detail="Play log not found")
+
+    # Parse the played_date
+    from datetime import datetime
+
+    try:
+        parsed_date = datetime.fromisoformat(played_date.replace("Z", "+00:00"))
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format")
+
+    # Update play log
+    play_log.played_date = parsed_date
+    play_log.players = players
+    play_log.duration_minutes = duration_minutes
+    play_log.winner = winner
+    play_log.notes = notes
+
+    # Handle family ratings
+    form_data = await request.form()
+    family_members = db.query(FamilyMember).all()
+
+    for member in family_members:
+        rating_key = f"rating_{member.id}"
+        if rating_key in form_data and form_data[rating_key]:
+            try:
+                rating_value = int(form_data[rating_key])
+                if 1 <= rating_value <= 10:
+                    # Check if rating already exists
+                    existing_rating = (
+                        db.query(GameRating)
+                        .filter(
+                            GameRating.game_id == play_log.game_id,
+                            GameRating.family_member_id == member.id,
+                        )
+                        .first()
+                    )
+
+                    if existing_rating:
+                        # Update existing rating
+                        existing_rating.rating = rating_value
+                    else:
+                        # Create new rating
+                        game_rating = GameRating(
+                            game_id=play_log.game_id,
+                            family_member_id=member.id,
+                            rating=rating_value,
+                        )
+                        db.add(game_rating)
+            except ValueError:
+                pass  # Skip invalid ratings
+
+    db.commit()
+
+    return RedirectResponse(
+        url=f"/play-logs?msg=Play+log+updated+successfully", status_code=303
+    )
+
+
+@app.post("/play-logs/{play_log_id}/delete")
+async def delete_play_log(
+    request: Request,
+    play_log_id: int = Path(..., gt=0),
+    db: Session = Depends(get_db),
+):
+    """Delete a play log entry"""
+    # Require authentication
+    require_auth(request)
+
+    play_log = db.query(PlayLog).filter(PlayLog.id == play_log_id).first()
+    if not play_log:
+        raise HTTPException(status_code=404, detail="Play log not found")
+
+    db.delete(play_log)
+    db.commit()
+
+    return RedirectResponse(
+        url=f"/play-logs?msg=Play+log+deleted+successfully", status_code=303
     )
 
 
