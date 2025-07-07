@@ -751,6 +751,14 @@ async def log_play_session(
 
     db.commit()
 
+    # Validate that game_id corresponds to an existing game
+    game = db.query(Game).filter(Game.id == game_id).first()
+    if not game:
+        # Redirect to the home page if game_id is invalid
+        return RedirectResponse(
+            url="/?msg=Invalid+game+ID", status_code=303
+        )
+
     return RedirectResponse(
         url=f"/games/{game_id}?msg=Play+session+logged+successfully", status_code=303
     )
